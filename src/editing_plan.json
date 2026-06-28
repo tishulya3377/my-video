@@ -1,0 +1,229 @@
+{
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 26.4,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ДЕНЬ СУРКА", "subtitle": "Жизнь без огня — это норма?", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 26.4,
+      "end": 49.08,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "2022 год. Корея. Депрессия и апатия.", "animation": "slide_up", "duration": 23 },
+        { "type": "caption", "text": "Это моя история", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 49.08,
+      "end": 85.36,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Я перерыл книги и ресурсы. И нашёл ответ.", "animation": "slide_up", "duration": 36 },
+        { "type": "caption", "text": "Ответ существует", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 85.36,
+      "end": 105.84,
+      "effects": ["slide_up"],
+      "ui": [
+        { "type": "subtitle", "text": "Представь, что мы просто сидим и разговариваем за кофе.", "animation": "slide_up", "duration": 20 },
+        { "type": "caption", "text": "Без инструкций", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 105.84,
+      "end": 136.16,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ЖИТЬ С ОГНЁМ", "subtitle": "Что это значит на самом деле", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 136.16,
+      "end": 157.72,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "В 15 лет я хотел в НБА. Рост 170, азиат в России — шансов ноль.", "animation": "fade", "duration": 22 },
+        { "type": "caption", "text": "Мечта была огромной", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 157.72,
+      "end": 203.24,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Я вскакивал с постели и бежал в спортзал. Каждый день. Только это.", "animation": "slide_up", "duration": 46 },
+        { "type": "caption", "text": "Вот что такое огонь", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 203.24,
+      "end": 247.24,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "МОНОФОКУС", "subtitle": "Одна задача — и только она", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 247.24,
+      "end": 290.56,
+      "effects": ["glitch_hit", "punch_zoom"],
+      "ui": [
+        { "type": "subtitle", "text": "Мне сказали: твой диплом не считается. Иди снова в школу.", "animation": "fade", "duration": 43 },
+        { "type": "caption", "text": "Удар за ударом", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 290.56,
+      "end": 331.56,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Решил стать fashion-дизайнером. Готовился год. Поступил.", "animation": "slide_up", "duration": 41 },
+        { "type": "caption", "text": "Миссия выполнена", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 331.56,
+      "end": 365.36,
+      "effects": ["glitch_hit", "punch_zoom"],
+      "ui": [
+        { "type": "subtitle", "text": "И снова депрессия. Как будто дыра в сердце. Чего-то не хватает.", "animation": "fade", "duration": 34 },
+        { "type": "caption", "text": "Цель достигнута — а огня нет", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 365.36,
+      "end": 424.88,
+      "effects": ["glitch_hit", "slide_up"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ВСЁРУХНУЛО", "subtitle": "Корея. Один. С нуля.", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 424.88,
+      "end": 498.28,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Переехал. Расстался. Остался без целей, без друзей, без мечты.", "animation": "slide_up", "duration": 74 },
+        { "type": "caption", "text": "Ноль. Абсолютный ноль.", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 498.28,
+      "end": 571.12,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Работал ночные смены на банкетах. Жизнь просто несла меня.", "animation": "slide_up", "duration": 73 },
+        { "type": "caption", "text": "Без выбора и направления", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 571.12,
+      "end": 617.96,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ПЕРЕЛОМНЫЙ МОМЕНТ", "subtitle": "1300 просмотров изменили всё", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 617.96,
+      "end": 675.72,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Люди писали вопросы. Кому-то моя жизнь была полезна. Это изменило меня.", "animation": "fade", "duration": 58 },
+        { "type": "caption", "text": "Кому-то нужна твоя история", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 675.72,
+      "end": 728.04,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "КОНЦЕПТ №1", "subtitle": "Когда плохо — начни помогать другим", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 728.04,
+      "end": 785.08,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Пирамида Маслоу. На вершине — самоактуализация. Именно туда стремятся успешные.", "animation": "slide_up", "duration": 57 },
+        { "type": "chapter_title", "text": "Пирамида Маслоу", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 785.08,
+      "end": 869.36,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Бедные поднимаются выше средних. Они видят будущее больше, чем оно есть.", "animation": "fade", "duration": 84 },
+        { "type": "caption", "text": "Видение — это сила", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 869.36,
+      "end": 959.12,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ДАВАТЬ vs БРАТЬ", "subtitle": "В чём разница — и почему это важно", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 959.12,
+      "end": 1027.2,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Давать — как есть полезную пищу. Не сладко сразу. Но строит жизнь.", "animation": "slide_up", "duration": 68 },
+        { "type": "caption", "text": "Долгое удовольствие побеждает", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 1027.2,
+      "end": 1078.6,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ВОТ ЭТО ОГОНЬ", "subtitle": "Когда миссия больше тебя самого", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 1078.6,
+      "end": 1131.68,
+      "effects": ["glitch_hit", "punch_zoom"],
+      "ui": [
+        { "type": "subtitle", "text": "НБА, дизайн, Корея — всё было про меня. Когда фокус на себе — стержень слабый.", "animation": "fade", "duration": 53 },
+        { "type": "caption", "text": "Эгоцентризм ломает мечту", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 1131.68,
+      "end": 1178.28,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "«Делай то, что нравится» — худший совет. Делай то, что помогает другим.", "animation": "fade", "duration": 47 },
+        { "type": "caption", "text": "Служение — вот настоящий огонь", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 1178.28,
+      "end": 1226.32,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Дети берут. Взрослые отдают. Я переключился поздно — но переключился.", "animation": "slide_up", "duration": 48 },
+        { "type": "caption", "text": "Лучше поздно, чем никогда", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 1226.32,
+      "end": 1281.28,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ТВОЙ ЧЕЛЛЕНДЖ", "subtitle": "Чем ты можешь помочь — прямо сейчас?", "animation": "luxury_flash", "duration": 3 }
+      ]
+    }
+  ]
+}

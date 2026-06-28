@@ -1,0 +1,64 @@
+{
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 5.0,
+      "effects": ["punch_zoom"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ДЕНЬ СУРКА", "subtitle": "Живёшь на автопилоте?", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 5.0,
+      "end": 15.0,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Я был в депрессии. Без цели. Без огня. В Корее. Один.", "animation": "slide_up", "duration": 10 },
+        { "type": "caption", "text": "2022 год. Корея.", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 15.0,
+      "end": 25.0,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "В 15 лет я хотел в НБА. Рост 170. Азиат в России. Ноль шансов.", "animation": "fade", "duration": 10 },
+        { "type": "caption", "text": "Но огонь был", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 25.0,
+      "end": 35.0,
+      "effects": ["glitch_hit", "punch_zoom"],
+      "ui": [
+        { "type": "subtitle", "text": "Потом всё рухнуло. Диплом не считается. Девушка ушла. Работа ночью.", "animation": "fade", "duration": 10 },
+        { "type": "caption", "text": "Абсолютный ноль", "animation": "punch_zoom", "duration": 3 }
+      ]
+    },
+    {
+      "start": 35.0,
+      "end": 45.0,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ПЕРЕЛОМНЫЙ МОМЕНТ", "subtitle": "1300 просмотров", "animation": "luxury_flash", "duration": 3 }
+      ]
+    },
+    {
+      "start": 45.0,
+      "end": 53.0,
+      "effects": ["slide_up", "pop_caption"],
+      "ui": [
+        { "type": "subtitle", "text": "Я записал видео про университет. Люди написали: это помогло.", "animation": "slide_up", "duration": 8 },
+        { "type": "caption", "text": "Моя жизнь — кому-то нужна", "animation": "fade", "duration": 4 }
+      ]
+    },
+    {
+      "start": 53.0,
+      "end": 60.0,
+      "effects": ["punch_zoom", "pop_caption"],
+      "ui": [
+        { "type": "full_screen_title", "text": "ВЫВОД", "subtitle": "Когда плохо — начни отдавать", "animation": "luxury_flash", "duration": 3 }
+      ]
+    }
+  ]
+}
