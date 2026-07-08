@@ -1,0 +1,32 @@
+{
+  "name": "my-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render src/index.tsx AutoCutProject"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.250",
+    "@remotion/cli": "4.0.250",
+    "@remotion/google-fonts": "^4.0.486",
+    "@remotion/renderer": "4.0.250",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "remotion": "4.0.250"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.0",
+    "@types/react": "18.2.48",
+    "autoprefixer": "^10.5.2",
+    "postcss": "^8.5.16",
+    "tailwindcss": "^4.3.2",
+    "typescript": "5.3.3"
+  },
+  "resolutions": {
+    "ajv": "8.12.0",
+    "ajv-keywords": "5.1.0",
+    "schema-utils": "4.2.0",
+    "webpack": "5.88.2"
+  }
+}

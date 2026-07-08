@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+my-video.zip
+my-video_backup/
+node_modules/
