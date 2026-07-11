@@ -32,7 +32,7 @@ const WHITE       = "#FFFFFF";
 const CREAM       = "#FFF3D6";
 
 // Pure chroma-key black — never used anywhere except the background
-const CHROMA_BLACK = "#000000";
+const CHROMA_BLACK = "#00FF00";
 
 const lastSeg = (editingPlan as any).segments?.[(editingPlan as any).segments.length - 1];
 export const TOTAL_DURATION = lastSeg?.end ?? 0;
@@ -194,7 +194,10 @@ const op = fadeInOut(time, s, cappedEnd, 0.4, 0.4);
                   marginBottom: 20,
                   opacity: kickerOp,
                   fontFamily: autoFont(item.kicker ?? ""),
-                  textShadow: "0 0 2px #000, 0 2px 8px rgba(0,0,0,0.9)",
+                  textShadow: `
+  0 0 2px rgba(90,54,12,0.85),
+  0 2px 8px rgba(120,70,10,0.60)
+`,
                 }}>
                   {item.kicker ?? "● MICHAEL KVON"}
                 </div>
@@ -209,11 +212,11 @@ const op = fadeInOut(time, s, cappedEnd, 0.4, 0.4);
                   lineHeight: 1.0,
                   fontFamily: autoFont(item.text),
                   textShadow: `
-                    0 0 2px #000,
-                    0 0 4px #000,
-                    0 4px 0 ${GOLD_DEEP},
-                    0 6px 30px rgba(0,0,0,0.8)
-                  `,
+  0 0 3px rgba(90,54,12,0.90),
+  0 0 8px rgba(200,134,10,0.35),
+  0 4px 0 ${GOLD_DEEP},
+  0 8px 28px rgba(120,70,10,0.55)
+`,
                 }}>
                   {item.text}
                 </div>
@@ -228,7 +231,10 @@ const op = fadeInOut(time, s, cappedEnd, 0.4, 0.4);
                     letterSpacing: "0.06em",
                     opacity: subtextOp,
                     fontFamily: autoFont(item.subtext),
-                    textShadow: "0 0 2px #000, 0 2px 10px rgba(0,0,0,0.9)",
+                    textShadow: `
+  0 0 2px rgba(90,54,12,0.85),
+  0 2px 10px rgba(120,70,10,0.60)
+`,
                   }}>
                     {item.subtext}
                   </div>

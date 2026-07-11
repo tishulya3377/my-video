@@ -18,14 +18,16 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={{}}
       />
       <Composition
-        id="ShortsProject"
-        component={ShortsVideo}
-        durationInFrames={60 * FPS}
-        fps={FPS}
-        width={1080}
-        height={1920}
-        defaultProps={{}}
-      />
+    id="ShortsProject"
+    component={ShortsVideo}
+    fps={FPS}
+    width={1080}
+    height={1920}
+    durationInFrames={1800}
+    defaultProps={{
+        shortId:1
+    }}
+/>
     </>
   );
 };

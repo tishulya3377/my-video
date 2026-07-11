@@ -18,9 +18,9 @@
   "devDependencies": {
     "@types/node": "20.11.0",
     "@types/react": "18.2.48",
-    "autoprefixer": "^10.5.2",
-    "postcss": "^8.5.16",
-    "tailwindcss": "^4.3.2",
+    "autoprefixer": "10.5.2",
+    "postcss": "8.5.16",
+    "tailwindcss": "4.3.2",
     "typescript": "5.3.3"
   },
   "resolutions": {
