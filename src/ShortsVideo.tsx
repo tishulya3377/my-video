@@ -377,8 +377,3 @@ MICHAEL KVON
 );
 
 };
-
-''', encoding="utf-8")
-
-
-print("✅ ShortsVideo.tsx replaced")
