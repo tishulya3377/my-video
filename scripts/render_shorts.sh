@@ -88,6 +88,7 @@ ShortsProject \
 "$OUTPUT_FILE" \
 --props="{\"shortId\":$SHORT_ID}" \
 --codec=h264 \
+--pixel-format=yuv420p \
 --crf=18 \
 --concurrency=2
 
