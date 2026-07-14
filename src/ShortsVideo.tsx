@@ -183,7 +183,7 @@ style={{
 
 <Video
 
-src={staticFile("source.mov")}
+src={staticFile("source.mp4")}
 
 startFrom={Math.floor(short.start * fps)}
 

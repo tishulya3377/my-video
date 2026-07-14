@@ -1,6 +1,6 @@
-git add -A && git commit -m "Codespaces update $(date)" || true && git push origin main
+0. git add -A && git commit -m "Codespaces update $(date)" || true && git push origin main
 
 
 
 when editing: 
-cd /workspaces/my-video (find where you are)
+1. cd /workspaces/my-video (find where you are)

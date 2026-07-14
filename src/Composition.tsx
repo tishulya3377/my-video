@@ -4,7 +4,7 @@ export const Composition = () => {
   return (
     <AbsoluteFill>
       <OffthreadVideo
-        src={staticFile("source.mov")}
+        src={staticFile("source.mp4")}
         style={{
           width: "100%",
           height: "100%",
