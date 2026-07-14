@@ -84,6 +84,7 @@ echo "$OUTPUT_FILE"
 echo ""
 
 node node_modules/@remotion/cli/remotion-cli.js render \
+src/index-shorts.tsx \
 ShortsProject \
 "$OUTPUT_FILE" \
 --props="{\"shortId\":$SHORT_ID}" \
