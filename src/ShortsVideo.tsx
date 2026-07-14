@@ -9,26 +9,9 @@ import {
   spring,
 } from "remotion";
 
-import shortsPlan from "./shorts_plan.json";
-import cuts from "./cuts.json";
 
 type Props = {
-  shortId: number;
-};
-
-type Cut = {
-  start:number;
-  end:number;
-  duration:number;
-  text:string;
-};
-
-type Short = {
-  id:number;
-  start:number;
-  end:number;
-  hook:string;
-  title:string;
+  shortId:number;
 };
 
 
@@ -36,25 +19,34 @@ const GOLD = "#F5A623";
 const WHITE = "#FFFFFF";
 
 
+const shortsPlan = require("../public/shorts_plan.json");
+const cuts = require("../public/cuts.json");
+
+
 export const ShortsVideo:React.FC<Props> = ({
-  shortId
-}) => {
+ shortId
+})=>{
 
 
 const frame = useCurrentFrame();
+
 const {fps}=useVideoConfig();
 
 const time = frame / fps;
 
 
 
-const shorts:any[] = (shortsPlan as any).shorts;
+const shorts:any[] =
+shortsPlan.shorts;
+
 
 
 const short =
 shorts.find(
-(s)=>s.id===shortId
-) || shorts[0];
+(s:any)=>s.id===shortId
+)
+||
+shorts[0];
 
 
 
@@ -64,8 +56,8 @@ time + short.start;
 
 
 const activeCaption =
-(cuts as Cut[]).find(
-(c)=>
+cuts.find(
+(c:any)=>
 localTime >= c.start &&
 localTime <= c.end
 );
@@ -74,24 +66,28 @@ localTime <= c.end
 
 const captionScale =
 spring({
- frame,
- fps,
- config:{
-  damping:12,
-  stiffness:150
- }
+
+frame,
+
+fps,
+
+config:{
+damping:12,
+stiffness:150
+}
+
 });
 
 
 
 const hookOpacity =
 interpolate(
- frame,
- [0,20],
- [0,1],
- {
-  extrapolateRight:"clamp"
- }
+frame,
+[0,20],
+[0,1],
+{
+extrapolateRight:"clamp"
+}
 );
 
 
@@ -99,48 +95,50 @@ interpolate(
 return (
 
 <AbsoluteFill
+
 style={{
- background:"#000",
- overflow:"hidden"
+background:"#000",
+overflow:"hidden"
 }}
+
 >
 
 
 {/* VIDEO */}
-
-<AbsoluteFill>
 
 <Video
 
 src={staticFile("video.mp4")}
 
 startFrom={
- Math.floor(short.start * fps)
+Math.floor(short.start * fps)
 }
 
 endAt={
- Math.floor(short.end * fps)
+Math.floor(short.end * fps)
 }
 
 style={{
- width:"100%",
- height:"100%",
- objectFit:"cover"
+width:"100%",
+height:"100%",
+objectFit:"cover"
 }}
 
 />
 
-</AbsoluteFill>
 
 
-
-{/* DARK OVERLAY */}
+{/* DARK CINEMATIC OVERLAY */}
 
 <AbsoluteFill
+
 style={{
+
 background:
 "linear-gradient(180deg,rgba(0,0,0,.55),transparent 40%,rgba(0,0,0,.7))"
+
 }}
+
 />
 
 
@@ -148,15 +146,21 @@ background:
 {/* HOOK */}
 
 <div
+
 style={{
+
 position:"absolute",
+
 top:120,
+
 left:50,
+
 right:50,
 
 opacity:hookOpacity,
 
 fontSize:70,
+
 fontWeight:900,
 
 fontFamily:"Inter, sans-serif",
@@ -166,7 +170,9 @@ textAlign:"center",
 color:WHITE,
 
 textShadow:"0 5px 20px black"
+
 }}
+
 >
 
 {short.hook}
@@ -182,20 +188,26 @@ textShadow:"0 5px 20px black"
 activeCaption &&
 
 <div
+
 style={{
+
 position:"absolute",
 
 bottom:300,
 
 left:40,
+
 right:40,
 
 display:"flex",
+
 justifyContent:"center",
 
 transform:
 `scale(${captionScale})`
+
 }}
+
 >
 
 <div
@@ -264,5 +276,6 @@ MICHAEL KVON
 </AbsoluteFill>
 
 );
+
 
 };
