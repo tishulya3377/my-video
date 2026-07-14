@@ -23,7 +23,7 @@ export const RemotionRoot: React.FC = () => {
     fps={FPS}
     width={1080}
     height={1920}
-    durationInFrames={1800}
+    durationInFrames={30000}
     defaultProps={{
         shortId:1
     }}
