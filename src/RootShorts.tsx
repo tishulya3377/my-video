@@ -1,6 +1,9 @@
 import React from "react";
-import {Composition, staticFile} from "remotion";
+import {Composition} from "remotion";
 import {ShortsVideo} from "./ShortsVideo";
+
+
+const FPS = 30;
 
 
 export const RemotionRoot: React.FC = () => {
@@ -22,26 +25,29 @@ export const RemotionRoot: React.FC = () => {
       durationInFrames={1800}
 
       defaultProps={{
-        shortId: 1
+        shortId:1
       }}
 
 
       calculateMetadata={async ({props}) => {
 
 
-        const shortsPlan = await fetch(
-          staticFile("shorts_plan.json")
-        ).then(
-          (res) => res.json()
+        const response = await fetch(
+          "http://localhost:3000/public/shorts_plan.json"
         );
+
+
+        const shortsPlan = await response.json();
+
 
 
         const short =
           shortsPlan.shorts.find(
-            (s:any) => s.id === props.shortId
+            (s:any)=>s.id === props.shortId
           )
           ||
           shortsPlan.shorts[0];
+
 
 
         const duration =
@@ -50,16 +56,13 @@ export const RemotionRoot: React.FC = () => {
           );
 
 
+
         return {
 
-          durationInFrames: duration,
-
-          props: {
-            ...props,
-            shortId: short.id
-          }
+          durationInFrames: duration
 
         };
+
 
       }}
 
