@@ -107,23 +107,17 @@ overflow:"hidden"
 {/* VIDEO */}
 
 <Video
-
-src={staticFile("video.mp4")}
-
-startFrom={
-Math.floor(short.start * fps)
-}
-
-endAt={
-Math.floor(short.end * fps)
-}
-
-style={{
-width:"100%",
-height:"100%",
-objectFit:"cover"
-}}
-
+  src={staticFile("video.mp4")}
+  startFrom={Math.floor(short.start * fps)}
+  endAt={Math.floor(short.end * fps)}
+  pauseWhenBuffering={false}
+  delayRenderRetries={0}
+  delayRenderTimeoutInMilliseconds={120000}
+  style={{
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  }}
 />
 
 
