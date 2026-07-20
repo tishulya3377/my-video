@@ -17,17 +17,6 @@ export const RemotionRoot: React.FC = () => {
         height={1080}
         defaultProps={{}}
       />
-      <Composition
-    id="ShortsProject"
-    component={ShortsVideo}
-    fps={FPS}
-    width={1080}
-    height={1920}
-    durationInFrames={30000}
-    defaultProps={{
-        shortId:1
-    }}
-/>
     </>
   );
 };
