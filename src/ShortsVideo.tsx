@@ -19,8 +19,7 @@ const GOLD = "#F5A623";
 const WHITE = "#FFFFFF";
 
 
-const shortsPlan = require("../public/shorts_plan.json");
-const cuts = require("../public/cuts.json");
+import {useEffect, useState} from "react";
 
 
 export const ShortsVideo:React.FC<Props> = ({
@@ -33,6 +32,49 @@ const frame = useCurrentFrame();
 const {fps}=useVideoConfig();
 
 const time = frame / fps;
+
+
+
+const [shortsPlan,setShortsPlan] = useState<any>(null);
+
+const [cuts,setCuts] = useState<any[]>([]);
+
+
+
+useEffect(()=>{
+
+
+Promise.all([
+
+fetch(staticFile("shorts_plan.json"))
+.then(res=>res.json()),
+
+
+fetch(staticFile("cuts.json"))
+.then(res=>res.json())
+
+])
+
+.then(([plan,cutsData])=>{
+
+
+setShortsPlan(plan);
+
+setCuts(cutsData);
+
+
+});
+
+
+},[]);
+
+
+
+if(!shortsPlan){
+
+return null;
+
+}
 
 
 
