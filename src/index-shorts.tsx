@@ -1,24 +1,5 @@
-import { registerRoot } from "remotion";
-import { ShortsVideo } from "./ShortsVideo";
+import "./index.css";
+import {registerRoot} from "remotion";
+import {RemotionRoot} from "./RootShorts";
 
-import { Composition } from "remotion";
-
-const Root = () => {
-  return (
-    <>
-      <Composition
-        id="ShortsProject"
-        component={ShortsVideo}
-        durationInFrames={60 * 30}
-        fps={30}
-        width={1080}
-        height={1920}
-        defaultProps={{
-          shortId: 1,
-        }}
-      />
-    </>
-  );
-};
-
-registerRoot(Root);
+registerRoot(RemotionRoot);
