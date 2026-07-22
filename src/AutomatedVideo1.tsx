@@ -14,7 +14,7 @@ const GOLD = "#F5A623";
 const WHITE = "#FFFFFF";
 const ORANGE = "#E8650A";
 
-const segments: any[] = editingPlan.editing_plan ?? [];
+const segments: any[] = editingPlan.segments ?? [];
 
 const lastSegment = segments[segments.length - 1];
 

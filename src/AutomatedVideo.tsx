@@ -17,7 +17,7 @@ import {
 
 const GREEN = "#00FF00";
 
-const segments: any[] = editingPlan.editing_plan ?? [];
+const segments: any[] = editingPlan.segments ?? [];
 
 const lastSegment = segments[segments.length - 1];
 
