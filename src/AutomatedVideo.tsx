@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   AbsoluteFill,
   useCurrentFrame,
@@ -6,6 +6,9 @@ import {
   interpolate,
   spring,
   Easing,
+  staticFile,
+  delayRender,
+  continueRender,
 } from "remotion";
 
 import editingPlan from "./editing_plan.json";
@@ -19,13 +22,12 @@ import editingPlan from "./editing_plan.json";
 // ---------------------------------------------------------------------------
 
 const GREEN = "#00FF00";
-const PLATINUM = "#EDECE8";
-const GOLD = "#C9A24B";
+const PLATINUM = "#FFFFFF";
+const GOLD = "#F0B429";
 const WHITE = "#FFFFFF";
-const PANEL = "rgba(15,15,15,0.6)";
+const PANEL = "rgba(10,10,10,0.7)";
 
-const FONT_STACK =
-  "'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const FONT_STACK = "'Helvetica Local', 'Noto Local', Arial, sans-serif";
 
 const segments: any[] = editingPlan.editing_plan ?? [];
 const lastSegment = segments[segments.length - 1];
@@ -219,7 +221,7 @@ function renderFullScreenTitle(text: string, m: Motion) {
           letterSpacing: `${m.tracking}px`,
           lineHeight: 1.2,
           filter: `blur(${m.blur}px)`,
-          textShadow: "0 8px 30px rgba(0,0,0,0.55)",
+          textShadow: "0 2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 0 -2px 0 #000, 0 10px 30px rgba(0,0,0,0.6)",
         }}
       >
         {text}
@@ -515,11 +517,28 @@ export const AutomatedVideo: React.FC = () => {
 
   const time = frame / fps;
 
+  const [handle] = useState(() => delayRender("Loading fonts"));
+
+  useEffect(() => {
+    Promise.all([
+      new FontFace("Helvetica Local", `url(${staticFile("Helvetica.ttf")})`, {
+        weight: "700",
+      }).load(),
+      new FontFace("Noto Local", `url(${staticFile("NotoSansKR-Bold.otf")})`, {
+        weight: "700",
+      }).load(),
+    ])
+      .then((fonts) => {
+        fonts.forEach((f) => document.fonts.add(f));
+        continueRender(handle);
+      })
+      .catch(() => continueRender(handle));
+  }, [handle]);
+
   let chapterCount = 0;
 
   return (
     <AbsoluteFill style={{ background: GREEN }}>
-      <BackgroundFrame frame={frame} />
 
       {segments.map((segment, index) => {
         if (segment.type === "chapter_title") {
