@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   AbsoluteFill,
   useCurrentFrame,
@@ -6,35 +6,47 @@ import {
   interpolate,
   spring,
   Easing,
-  staticFile,
-  delayRender,
-  continueRender,
 } from "remotion";
+import { loadFont } from "@remotion/google-fonts/Montserrat";
 
 import editingPlan from "./editing_plan.json";
 
 // ---------------------------------------------------------------------------
-// PALETTE
-// full_screen_title / chapter_title / ambient lines: thin white, chroma-safe.
-// card / corner labels / fallback: gold + black + coffee + white (unchanged
-// from before). ribbon: orange, deliberately — a one-off accent for that
-// specific element, not the overall palette.
+// FONT — Montserrat, downloaded via @remotion/google-fonts (official
+// Remotion package). Full Cyrillic support, minimalist/bold — the TikTok /
+// motivational-video look. Loaded once at module scope; Remotion handles
+// the render-blocking wait internally, no manual FontFace/delayRender code
+// needed anymore.
+// ---------------------------------------------------------------------------
+
+const { fontFamily } = loadFont("normal", {
+  weights: ["600", "800", "900"],
+  subsets: ["cyrillic", "latin"],
+});
+
+const FONT_STACK = `${fontFamily}, 'Helvetica Neue', Arial, sans-serif`;
+
+// ---------------------------------------------------------------------------
+// PALETTE — 60% dominant neutral (white or black full-screen background),
+// 30% contrasting neutral (the inverse, for text), 10% gold accent (thin
+// lines, kicker, dot, corner marks). True full-screen segments are an
+// opaque hard swap away from the green — not a translucent overlay — so
+// there's no chroma risk: the green simply isn't on screen during those
+// seconds. Every other type stays a small overlay ON the green and keeps
+// the old chroma-safe treatment (thin/small elements, nothing full-bleed).
 // ---------------------------------------------------------------------------
 
 const GREEN = "#00FF00";
+const WHITE = "#FFFFFF";
+const BLACK = "#000000";
 const GOLD = "#D4AF37";
 const GOLD_BRIGHT = "#F2C14E";
-const BLACK = "#0B0B0B";
 const COFFEE = "#4A2E12";
-const WHITE = "#FFFFFF";
 const ORANGE = "#E8650A";
 const ORANGE_DEEP = "#C2440A";
 
 // Brand kicker shown on every full_screen_title. Edit this one line only.
 const KICKER_LABEL = "MICHAEL KVON";
-
-// Local fonts already sitting in /public — fix filenames/paths to match yours.
-const FONT_STACK = "'Helvetica Local', 'Noto Local', Arial, sans-serif";
 
 const segments: any[] = editingPlan.editing_plan ?? [];
 const lastSegment = segments[segments.length - 1];
@@ -44,9 +56,7 @@ export const TOTAL_DURATION = lastSegment?.end ?? 10;
 const cineEase = Easing.out(Easing.cubic);
 
 // ---------------------------------------------------------------------------
-// TIME-BASED HELPERS — plain interpolate() driven directly by local segment
-// time (seconds since the segment started). This is what full_screen_title
-// and chapter_title use: simple, predictable, easy to read as a timeline.
+// TIME-BASED HELPERS — used by full_screen_title / chapter_title / ribbon.
 // ---------------------------------------------------------------------------
 
 function smoothSlide(time: number, t1: number, t2: number, from: number, to: number): number {
@@ -80,8 +90,7 @@ function fadeInOut(time: number, t1: number, t2: number, t3: number, t4: number)
 }
 
 // ---------------------------------------------------------------------------
-// SPRING-BASED MOTION — still used by card / corner labels / fallback,
-// unchanged from before.
+// SPRING-BASED MOTION — still used by card / corner labels / fallback.
 // ---------------------------------------------------------------------------
 
 const ENTER_SECONDS = 0.6;
@@ -160,7 +169,9 @@ function popLine(time: number, start: number, end: number, growSeconds = 3, outS
 }
 
 // ---------------------------------------------------------------------------
-// AMBIENT LINES — 2 thin drifting hairlines only. Corner brackets removed.
+// AMBIENT LINES — only shown while the green is actually visible, i.e. we
+// simply don't render this under a full-screen white/black segment (those
+// already draw their own opaque background on top).
 // ---------------------------------------------------------------------------
 
 function AmbientLines({ frame }: { frame: number }) {
@@ -195,28 +206,29 @@ function AmbientLines({ frame }: { frame: number }) {
 }
 
 // ---------------------------------------------------------------------------
-// FULL SCREEN TITLE — thin-line luxury sequence, driven by local segment
-// time exactly like the animation-order spec: line grows, kicker fades,
-// title scales+rises, subtitle fades in later, bottom line grows, whole
-// card fades away near the end.
+// FULL SCREEN TITLE — true edge-to-edge white/black card (alternates per
+// occurrence), big bold Russian title, 60/30/10: 60% background, 30% text,
+// 10% gold accents (line, kicker, dot, optional subtitle).
 // ---------------------------------------------------------------------------
 
-function renderFullScreenTitle(text: string, time: number, start: number, end: number) {
+function renderFullScreenTitle(text: string, time: number, start: number, end: number, variantIndex: number) {
   const localTime = time - start;
   const duration = Math.max(end - start, 0.3);
-  // scales the whole sequence down proportionally if the segment is shorter
-  // than ~4s, so short titles never overlap their own fade-out
   const k = Math.min(1, duration / 4);
 
-  const topLineWidth = smoothSlide(localTime, 0.15 * k, 0.6 * k, 0, 260);
+  const topLineWidth = smoothSlide(localTime, 0.15 * k, 0.6 * k, 0, 220);
   const kickerOpacity = fadeInOnly(localTime, 0.2 * k, 0.25 * k);
   const titleScale = smoothSlide(localTime, 0, 0.55 * k, 0.92, 1);
   const titleY = smoothSlide(localTime, 0, 0.55 * k, 18, 0);
   const subtitleOpacity = fadeInOnly(localTime, 0.6 * k, 0.35 * k);
-  const bottomLineWidth = smoothSlide(localTime, 0.8 * k, 1.2 * k, 0, 260);
+  const bottomLineWidth = smoothSlide(localTime, 0.8 * k, 1.2 * k, 0, 220);
 
   const outStart = Math.max(duration - Math.min(0.6, duration * 0.2), 0.9 * k);
   const cardOpacity = fadeInOut(localTime, 0, 0.05, outStart, duration);
+
+  const isWhite = variantIndex % 2 === 0;
+  const bg = isWhite ? WHITE : BLACK;
+  const fg = isWhite ? BLACK : WHITE;
 
   const parts = text.split("|").map((s) => s.trim());
   const titleLine = parts[0];
@@ -226,105 +238,107 @@ function renderFullScreenTitle(text: string, time: number, start: number, end: n
     <div
       style={{
         position: "absolute",
-        top: "50%",
-        left: "50%",
-        width: "72%",
-        textAlign: "center",
-        transform: "translate(-50%, -50%)",
+        inset: 0,
+        background: bg,
         opacity: cardOpacity,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      <div
-        style={{
-          width: topLineWidth,
-          height: 2,
-          margin: "0 auto 26px",
-          background: WHITE,
-          boxShadow: "0 0 8px rgba(255,255,255,0.4)",
-        }}
-      />
-
-      <div
-        style={{
-          opacity: kickerOpacity,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-          marginBottom: 22,
-        }}
-      >
+      <div style={{ width: "78%", textAlign: "center" }}>
         <div
           style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
+            width: topLineWidth,
+            height: 3,
+            margin: "0 auto 30px",
             background: GOLD,
-            boxShadow: `0 0 8px ${GOLD}`,
+            boxShadow: `0 0 10px ${GOLD}`,
           }}
         />
+
         <div
           style={{
-            fontFamily: FONT_STACK,
-            fontSize: 20,
-            fontWeight: 700,
-            letterSpacing: "4px",
-            color: GOLD,
-            textTransform: "uppercase",
+            opacity: kickerOpacity,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            marginBottom: 26,
           }}
         >
-          {KICKER_LABEL}
-        </div>
-      </div>
-
-      <div style={{ transform: `scale(${titleScale}) translateY(${titleY}px)` }}>
-        <div
-          style={{
-            fontFamily: FONT_STACK,
-            fontSize: 84,
-            fontWeight: 800,
-            color: WHITE,
-            letterSpacing: "1px",
-            lineHeight: 1.15,
-            textShadow: "0 10px 30px rgba(0,0,0,0.6)",
-          }}
-        >
-          {titleLine}
-        </div>
-      </div>
-
-      {subtitleLine && (
-        <div style={{ opacity: subtitleOpacity, marginTop: 20 }}>
+          <div
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              background: GOLD,
+              boxShadow: `0 0 10px ${GOLD}`,
+            }}
+          />
           <div
             style={{
               fontFamily: FONT_STACK,
-              fontSize: 30,
-              fontWeight: 500,
-              color: GOLD_BRIGHT,
-              letterSpacing: "0.5px",
+              fontSize: 22,
+              fontWeight: 700,
+              letterSpacing: "5px",
+              color: GOLD,
+              textTransform: "uppercase",
             }}
           >
-            {subtitleLine}
+            {KICKER_LABEL}
           </div>
         </div>
-      )}
 
-      <div
-        style={{
-          width: bottomLineWidth,
-          height: 2,
-          margin: "26px auto 0",
-          background: WHITE,
-          boxShadow: "0 0 8px rgba(255,255,255,0.4)",
-        }}
-      />
+        <div style={{ transform: `scale(${titleScale}) translateY(${titleY}px)` }}>
+          <div
+            style={{
+              fontFamily: FONT_STACK,
+              fontSize: 148,
+              fontWeight: 900,
+              color: fg,
+              letterSpacing: "-2px",
+              lineHeight: 1.05,
+              textTransform: "uppercase",
+            }}
+          >
+            {titleLine}
+          </div>
+        </div>
+
+        {subtitleLine && (
+          <div style={{ opacity: subtitleOpacity, marginTop: 28 }}>
+            <div
+              style={{
+                fontFamily: FONT_STACK,
+                fontSize: 34,
+                fontWeight: 600,
+                color: GOLD,
+                letterSpacing: "0.5px",
+              }}
+            >
+              {subtitleLine}
+            </div>
+          </div>
+        )}
+
+        <div
+          style={{
+            width: bottomLineWidth,
+            height: 3,
+            margin: "30px auto 0",
+            background: GOLD,
+            boxShadow: `0 0 10px ${GOLD}`,
+          }}
+        />
+      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// CORNER CHAPTER — top banner, "VIDEO" kicker left, chapter number slides
-// in from the right, thin line underneath.
+// CORNER CHAPTER — small overlay ON the green (unchanged position/timing),
+// labels translated to Russian.
 // ---------------------------------------------------------------------------
 
 function renderChapterTitle(text: string, time: number, start: number, end: number, chapterNumber: number) {
@@ -357,7 +371,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
             opacity: 0.85,
           }}
         >
-          VIDEO
+          ВИДЕО
         </div>
         <div
           style={{
@@ -370,7 +384,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
             transform: `translateX(${chapterX}px)`,
           }}
         >
-          CHAPTER {String(chapterNumber).padStart(2, "0")}
+          ГЛАВА {String(chapterNumber).padStart(2, "0")}
         </div>
       </div>
       <div
@@ -401,7 +415,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
 }
 
 // ---------------------------------------------------------------------------
-// CAPTION RIBBON — boxed, orange gradient, pop-in, upper-left.
+// CAPTION RIBBON — small overlay ON the green (unchanged).
 // ---------------------------------------------------------------------------
 
 function renderRibbon(text: string, time: number, start: number, end: number) {
@@ -442,70 +456,61 @@ function renderRibbon(text: string, time: number, start: number, end: number) {
 }
 
 // ---------------------------------------------------------------------------
-// CARD / CORNER LABELS / FALLBACK — unchanged, still spring-driven,
-// gold + black + coffee + white.
+// CARD — now also a true full-screen white/black swap (alternates
+// independently from full_screen_title), for motivational-quote / fact
+// statements. 60/30/10 applied the same way.
 // ---------------------------------------------------------------------------
 
-function renderCard(text: string, time: number, start: number, end: number, m: Motion) {
+function renderCard(text: string, time: number, start: number, end: number, m: Motion, variantIndex: number) {
   const lineScale = popLine(time, start, end);
+
+  const isWhite = variantIndex % 2 === 0;
+  const bg = isWhite ? WHITE : BLACK;
+  const fg = isWhite ? BLACK : WHITE;
 
   return (
     <div
       style={{
         position: "absolute",
-        top: "50%",
-        left: "50%",
-        width: "88%",
-        height: "76%",
-        transform: `translate(-50%, -50%) scale(${m.scale})`,
+        inset: 0,
+        background: bg,
         opacity: m.progress,
+        transform: `scale(${m.scale})`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
-          borderRadius: 18,
-          background: `linear-gradient(160deg, rgba(11,11,11,0.92), rgba(74,46,18,0.85))`,
-          border: `1px solid rgba(212,175,55,0.45)`,
-          boxShadow: "0 40px 100px -20px rgba(0,0,0,0.7)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "60px 90px",
-        }}
-      >
+      <div style={{ position: "relative", width: "76%" }}>
         <div
           style={{
-            position: "absolute",
-            top: 0,
-            left: "20%",
-            right: "20%",
+            width: "40%",
             height: 3,
-            background: `linear-gradient(90deg, transparent, ${GOLD}, ${GOLD_BRIGHT}, transparent)`,
+            margin: "0 auto 34px",
+            background: GOLD,
             transform: `scaleX(${lineScale})`,
-            boxShadow: `0 0 16px rgba(212,175,55,0.6)`,
+            boxShadow: `0 0 12px ${GOLD}`,
           }}
         />
 
         {[
-          { top: 26, left: 26, borderTop: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` },
-          { top: 26, right: 26, borderTop: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` },
-          { bottom: 26, left: 26, borderBottom: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` },
-          { bottom: 26, right: 26, borderBottom: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` },
+          { top: -46, left: -30, borderTop: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` },
+          { top: -46, right: -30, borderTop: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` },
+          { bottom: -46, left: -30, borderBottom: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` },
+          { bottom: -46, right: -30, borderBottom: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` },
         ].map((pos, i) => (
-          <div key={i} style={{ position: "absolute", width: 24, height: 24, opacity: 0.6, ...pos }} />
+          <div key={i} style={{ position: "absolute", width: 26, height: 26, opacity: 0.55, ...pos }} />
         ))}
 
         <div
           style={{
             fontFamily: FONT_STACK,
-            fontSize: 56,
-            fontWeight: 700,
-            color: WHITE,
+            fontSize: 68,
+            fontWeight: 800,
+            color: fg,
             textAlign: "center",
-            lineHeight: 1.4,
+            lineHeight: 1.3,
+            letterSpacing: "-0.5px",
             filter: `blur(${m.blur}px)`,
           }}
         >
@@ -616,7 +621,16 @@ function renderAnimatedText(text: string, m: Motion) {
   );
 }
 
-function renderSegment(segment: any, time: number, frame: number, fps: number, key: number, chapterNumber: number) {
+function renderSegment(
+  segment: any,
+  time: number,
+  frame: number,
+  fps: number,
+  key: number,
+  chapterNumber: number,
+  fullScreenVariant: number,
+  cardVariant: number
+) {
   const { type, text, start, end } = segment;
 
   if (type === "caption") {
@@ -627,7 +641,7 @@ function renderSegment(segment: any, time: number, frame: number, fps: number, k
 
   switch (type) {
     case "full_screen_title":
-      content = renderFullScreenTitle(text, time, start, end);
+      content = renderFullScreenTitle(text, time, start, end, fullScreenVariant);
       break;
     case "chapter_title":
       content = renderChapterTitle(text, time, start, end, chapterNumber);
@@ -639,7 +653,7 @@ function renderSegment(segment: any, time: number, frame: number, fps: number, k
     case "fact":
     case "quote": {
       const m = getMotion(frame, fps, start, end);
-      content = renderCard(text, time, start, end, m);
+      content = renderCard(text, time, start, end, m, cardVariant);
       break;
     }
     case "corner_left":
@@ -673,40 +687,50 @@ export const AutomatedVideo: React.FC = () => {
 
   const time = frame / fps;
 
-  const [handle] = useState(() => delayRender("Loading fonts"));
-
-  useEffect(() => {
-    Promise.all([
-      new FontFace("Helvetica Local", `url(${staticFile("Helvetica.ttf")})`, {
-        weight: "700",
-      }).load(),
-      new FontFace("Noto Local", `url(${staticFile("NotoSansKR-Bold.otf")})`, {
-        weight: "700",
-      }).load(),
-    ])
-      .then((fonts) => {
-        fonts.forEach((f) => document.fonts.add(f));
-        continueRender(handle);
-      })
-      .catch(() => continueRender(handle));
-  }, [handle]);
-
   let chapterCount = 0;
+  let fullScreenCount = 0;
+  let cardCount = 0;
+
+  // Is a true full-screen segment (full_screen_title or card/fact/quote)
+  // active right now? If so, skip the ambient green-screen lines — they'd
+  // just be invisible under the opaque white/black anyway, no need to
+  // render them.
+  const fullScreenActive = segments.some(
+    (s) =>
+      (s.type === "full_screen_title" || s.type === "card" || s.type === "fact" || s.type === "quote") &&
+      time >= s.start &&
+      time <= s.end
+  );
 
   return (
     <AbsoluteFill style={{ background: GREEN }}>
-      <AmbientLines frame={frame} />
+      {!fullScreenActive && <AmbientLines frame={frame} />}
 
       {segments.map((segment, index) => {
         if (segment.type === "chapter_title") {
           chapterCount += 1;
+        }
+        if (segment.type === "full_screen_title") {
+          fullScreenCount += 1;
+        }
+        if (segment.type === "card" || segment.type === "fact" || segment.type === "quote") {
+          cardCount += 1;
         }
 
         if (time < segment.start || time > segment.end) {
           return null;
         }
 
-        return renderSegment(segment, time, frame, fps, index, chapterCount);
+        return renderSegment(
+          segment,
+          time,
+          frame,
+          fps,
+          index,
+          chapterCount,
+          fullScreenCount - 1,
+          cardCount - 1
+        );
       })}
     </AbsoluteFill>
   );
