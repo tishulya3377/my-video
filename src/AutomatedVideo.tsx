@@ -171,41 +171,6 @@ function popLine(time: number, start: number, end: number, growSeconds = 3, outS
 }
 
 // ---------------------------------------------------------------------------
-// AMBIENT LINES — only shown while the green is actually visible, i.e. we
-// simply don't render this under a full-screen white/black segment (those
-// already draw their own opaque background on top).
-// ---------------------------------------------------------------------------
-
-function AmbientLines({ frame }: { frame: number }) {
-  const lines = [
-    { top: "10%", widthPct: 16, phase: 0 },
-    { top: "50%", widthPct: 8, phase: 3.1 },
-  ];
-
-  return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      {lines.map((l, i) => {
-        const drift = Math.sin(frame / 160 + l.phase) * 5;
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              top: l.top,
-              left: `${50 + drift}%`,
-              transform: "translate(-50%, -50%)",
-              width: `${l.widthPct}%`,
-              height: 1,
-              background: WHITE,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // FULL SCREEN TITLE — true edge-to-edge white/black card (alternates per
 // occurrence), big bold Russian title, 60/30/10: 60% background, 30% text,
 // 10% gold accents (line, kicker, dot, optional subtitle).
@@ -351,7 +316,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
 
   return (
     <div style={{ position: "absolute", top: 64, left: 64, right: 64, opacity }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div
           style={{
             fontFamily: FONT_STACK,
@@ -367,11 +332,15 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
         <div
           style={{
             fontFamily: FONT_STACK,
-            fontSize: 22,
-            fontWeight: 700,
+            fontSize: 30,
+            fontWeight: 800,
             letterSpacing: "3px",
             color: GOLD,
             textTransform: "uppercase",
+            background: COFFEE,
+            border: `1px solid ${GOLD_BORDER}`,
+            padding: "10px 24px",
+            borderRadius: 6,
             transform: `translateX(${chapterX}px)`,
           }}
         >
@@ -675,16 +644,9 @@ export const AutomatedVideo: React.FC = () => {
   // active right now? If so, skip the ambient green-screen lines — they'd
   // just be invisible under the opaque white/black anyway, no need to
   // render them.
-  const fullScreenActive = segments.some(
-    (s) =>
-      (s.type === "full_screen_title" || s.type === "card" || s.type === "fact" || s.type === "quote") &&
-      time >= s.start &&
-      time <= s.end
-  );
 
   return (
     <AbsoluteFill style={{ background: GREEN }}>
-      {!fullScreenActive && <AmbientLines frame={frame} />}
 
       {segments.map((segment, index) => {
         if (segment.type === "chapter_title") {
