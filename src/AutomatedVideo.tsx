@@ -39,9 +39,11 @@ const FONT_STACK = `${fontFamily}, 'Helvetica Neue', Arial, sans-serif`;
 const GREEN = "#00FF00";
 const WHITE = "#FFFFFF";
 const BLACK = "#000000";
-const GOLD = "#D4AF37";
-const GOLD_BRIGHT = "#F2C14E";
-const COFFEE = "#4A2E12";
+const GOLD = "#C9972E";
+const GOLD_BRIGHT = "#E0A94A";
+const GOLD_BORDER = "#8A6A22";
+const COFFEE = "#3A2410";
+const MUTED = "#C7C7C7";
 const ORANGE = "#E8650A";
 const ORANGE_DEEP = "#C2440A";
 
@@ -194,9 +196,7 @@ function AmbientLines({ frame }: { frame: number }) {
               transform: "translate(-50%, -50%)",
               width: `${l.widthPct}%`,
               height: 1,
-              boxShadow: "0 0 5px 1px rgba(0,0,0,0.4)",
               background: WHITE,
-              opacity: 0.11,
             }}
           />
         );
@@ -350,15 +350,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
   const opacity = fadeInOut(localTime, 0, 0.35, Math.max(duration - 0.4, 0.36), duration);
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: 64,
-        left: 64,
-        right: 64,
-        opacity,
-      }}
-    >
+    <div style={{ position: "absolute", top: 64, left: 64, right: 64, opacity }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div
           style={{
@@ -366,9 +358,8 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
             fontSize: 20,
             fontWeight: 700,
             letterSpacing: "5px",
-            color: WHITE,
+            color: MUTED,
             textTransform: "uppercase",
-            opacity: 0.85,
           }}
         >
           ВИДЕО
@@ -390,23 +381,14 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
       <div
         style={{
           height: 1,
-          background: WHITE,
+          background: MUTED,
           marginTop: 14,
-          opacity: 0.5,
           transform: `scaleX(${lineScale})`,
           transformOrigin: "left",
         }}
       />
       {text ? (
-        <div
-          style={{
-            fontFamily: FONT_STACK,
-            fontSize: 15,
-            color: WHITE,
-            opacity: 0.55,
-            marginTop: 10,
-          }}
-        >
+        <div style={{ fontFamily: FONT_STACK, fontSize: 15, color: MUTED, marginTop: 10 }}>
           {text}
         </div>
       ) : null}
@@ -445,7 +427,7 @@ function renderRibbon(text: string, time: number, start: number, end: number) {
           background: `linear-gradient(120deg, ${ORANGE}, ${ORANGE_DEEP})`,
           padding: "14px 30px",
           borderRadius: 10,
-          boxShadow: "0 12px 30px -8px rgba(0,0,0,0.6)",
+          border: `2px solid ${BLACK}`,
           letterSpacing: "0.5px",
         }}
       >
@@ -535,19 +517,18 @@ function renderCornerLeft(text: string, m: Motion) {
         gap: 10,
       }}
     >
-      <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD, boxShadow: `0 0 10px ${GOLD}` }} />
+      <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD }} />
       <div
         style={{
           fontFamily: FONT_STACK,
           fontSize: 28,
           fontWeight: 700,
           color: WHITE,
-          background: `rgba(74,46,18,0.55)`,
-          border: `1px solid rgba(212,175,55,0.5)`,
+          background: COFFEE,
+          border: `1px solid ${GOLD_BORDER}`,
           padding: "10px 22px",
           borderRadius: 999,
           letterSpacing: "0.5px",
-          boxShadow: "0 8px 22px -6px rgba(0,0,0,0.55)",
         }}
       >
         {text}
@@ -571,19 +552,18 @@ function renderCornerRight(text: string, m: Motion) {
         flexDirection: "row-reverse",
       }}
     >
-      <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD, boxShadow: `0 0 10px ${GOLD}` }} />
+      <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD }} />
       <div
         style={{
           fontFamily: FONT_STACK,
           fontSize: 28,
           fontWeight: 700,
           color: WHITE,
-          background: `rgba(74,46,18,0.55)`,
-          border: `1px solid rgba(212,175,55,0.5)`,
+          background: COFFEE,
+          border: `1px solid ${GOLD_BORDER}`,
           padding: "10px 22px",
           borderRadius: 999,
           letterSpacing: "0.5px",
-          boxShadow: "0 8px 22px -6px rgba(0,0,0,0.55)",
         }}
       >
         {text}
