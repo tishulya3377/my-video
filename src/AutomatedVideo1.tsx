@@ -14,19 +14,20 @@ import {
 import editingPlan from "./editing_plan.json";
 
 // ---------------------------------------------------------------------------
-// PALETTE — restrained editorial tones. One muted gold used sparingly as an
-// accent (never as a loud fill or gradient bar). No orange. Structural
-// hairlines/brackets stay thin white/low-opacity: safe against the chroma
-// green (different hue entirely, and nothing here is full-frame, so the
-// green itself is never touched).
+// PALETTE — 60% gold / 30% black / 10% coffee, white as the crisp accent.
+// Structural frame lines stay pure white and thin: nothing here is
+// full-bleed over the green, so the chroma key is never touched.
 // ---------------------------------------------------------------------------
 
 const GREEN = "#00FF00";
-const PLATINUM = "#FFFFFF";
-const GOLD = "#F0B429";
+const GOLD = "#D4AF37";
+const GOLD_BRIGHT = "#F2C14E";
+const BLACK = "#0B0B0B";
+const COFFEE = "#4A2E12";
 const WHITE = "#FFFFFF";
-const PANEL = "rgba(10,10,10,0.7)";
 
+// Local fonts already sitting in /public — fix the filenames/paths below to
+// match what you actually have.
 const FONT_STACK = "'Helvetica Local', 'Noto Local', Arial, sans-serif";
 
 const segments: any[] = editingPlan.editing_plan ?? [];
@@ -37,20 +38,18 @@ export const TOTAL_DURATION = lastSegment?.end ?? 10;
 const cineEase = Easing.out(Easing.cubic);
 
 // ---------------------------------------------------------------------------
-// MOTION — spring()-driven entrance (critically damped, no cartoon bounce),
-// interpolate() for the derived values (opacity fade-out, blur, depth,
-// scale, tracking). Epsilon-guarded against zero/near-zero length segments.
+// MOTION
 // ---------------------------------------------------------------------------
 
 const ENTER_SECONDS = 0.6;
 const EXIT_SECONDS = 0.4;
 
 interface Motion {
-  progress: number; // 0 -> 1 -> 0, drives opacity
+  progress: number;
   blur: number;
-  depth: number; // px to rise from (translateY)
+  depth: number;
   scale: number;
-  tracking: number; // letter-spacing px, wide -> tight
+  tracking: number;
 }
 
 function getMotion(frame: number, fps: number, start: number, end: number): Motion {
@@ -84,15 +83,15 @@ function getMotion(frame: number, fps: number, start: number, end: number): Moti
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const depth = interpolate(progress, [0, 1], [16, 0], {
+  const depth = interpolate(progress, [0, 1], [18, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const scale = interpolate(progress, [0, 1], [0.965, 1], {
+  const scale = interpolate(progress, [0, 1], [0.94, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const tracking = interpolate(progress, [0, 1], [9, 1], {
+  const tracking = interpolate(progress, [0, 1], [10, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -100,8 +99,30 @@ function getMotion(frame: number, fps: number, start: number, end: number): Moti
   return { progress, blur, depth, scale, tracking };
 }
 
+/**
+ * Progress-line pop: grows 0 -> 1 over up to 3 seconds (clamped to the
+ * segment length if it's shorter), holds, then fades smoothly near the end.
+ * Time-based (seconds), epsilon-guarded against short/zero-length segments.
+ */
+function popLine(time: number, start: number, end: number, growSeconds = 3, outSeconds = 0.5): number {
+  const duration = Math.max(end - start, 0.05);
+  const safeGrow = Math.min(growSeconds, Math.max(duration - 0.05, 0.05));
+  const safeOut = Math.min(outSeconds, Math.max(duration / 3, 0.05));
+
+  const p1 = start;
+  const p2 = Math.max(start + safeGrow, p1 + 0.05);
+  const p3 = Math.max(end - safeOut, p2 + 0.05);
+  const p4 = Math.max(end, p3 + 0.05);
+
+  return interpolate(time, [p1, p2, p3, p4], [0, 1, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: cineEase,
+  });
+}
+
 // ---------------------------------------------------------------------------
-// STRUCTURAL FRAME ELEMENTS — thin corner brackets + drifting hairlines.
+// STRUCTURAL FRAME ELEMENTS
 // ---------------------------------------------------------------------------
 
 function CornerBracket({
@@ -127,9 +148,9 @@ function CornerBracket({
         left,
         right,
         bottom,
-        width: 38,
-        height: 38,
-        opacity: 0.22,
+        width: 42,
+        height: 42,
+        opacity: 0.25,
         transform: `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`,
       }}
     >
@@ -138,7 +159,7 @@ function CornerBracket({
           position: "absolute",
           top: 0,
           left: 0,
-          width: 38,
+          width: 42,
           height: 1,
           background: WHITE,
           boxShadow: "0 0 5px 1px rgba(0,0,0,0.5)",
@@ -150,7 +171,7 @@ function CornerBracket({
           top: 0,
           left: 0,
           width: 1,
-          height: 38,
+          height: 42,
           background: WHITE,
           boxShadow: "0 0 5px 1px rgba(0,0,0,0.5)",
         }}
@@ -196,157 +217,170 @@ function BackgroundFrame({ frame }: { frame: number }) {
 }
 
 // ---------------------------------------------------------------------------
-// OVERLAY RENDERERS — off-center, editorial, restrained.
+// OVERLAY RENDERERS
 // ---------------------------------------------------------------------------
 
-function renderFullScreenTitle(text: string, m: Motion) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: "9%",
-        bottom: "24%",
-        width: "50%",
-        transform: `translateY(${m.depth}px) scale(${m.scale})`,
-        transformOrigin: "left bottom",
-        opacity: m.progress,
-      }}
-    >
-      <div
-        style={{
-          fontFamily: FONT_STACK,
-          fontSize: 58,
-          fontWeight: 600,
-          color: PLATINUM,
-          letterSpacing: `${m.tracking}px`,
-          lineHeight: 1.2,
-          filter: `blur(${m.blur}px)`,
-          textShadow: "0 2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 0 -2px 0 #000, 0 10px 30px rgba(0,0,0,0.6)",
-        }}
-      >
-        {text}
-      </div>
-      <div
-        style={{
-          width: 64,
-          height: 1,
-          marginTop: 22,
-          background: GOLD,
-          opacity: 0.7 * m.progress,
-        }}
-      />
-    </div>
-  );
-}
+function renderFullScreenTitle(text: string, time: number, start: number, end: number, m: Motion) {
+  const lineScale = popLine(time, start, end);
 
-function renderChapterTitle(text: string, m: Motion, chapterNumber: number) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: "9%",
-        top: "36%",
-        width: "44%",
-        transform: `translateY(${m.depth}px) scale(${m.scale})`,
-        transformOrigin: "left center",
-        opacity: m.progress,
-      }}
-    >
-      <div
-        style={{
-          fontFamily: FONT_STACK,
-          fontSize: 15,
-          fontWeight: 600,
-          letterSpacing: `${2 + m.tracking * 0.4}px`,
-          color: GOLD,
-          marginBottom: 14,
-        }}
-      >
-        CH. {String(chapterNumber).padStart(2, "0")}
-      </div>
-      <div
-        style={{
-          width: 40,
-          height: 1,
-          background: GOLD,
-          opacity: 0.6,
-          marginBottom: 18,
-        }}
-      />
-      <div
-        style={{
-          fontFamily: FONT_STACK,
-          fontSize: 40,
-          fontWeight: 600,
-          color: PLATINUM,
-          letterSpacing: `${m.tracking * 0.5}px`,
-          lineHeight: 1.25,
-          filter: `blur(${m.blur}px)`,
-          textShadow: "0 6px 24px rgba(0,0,0,0.5)",
-        }}
-      >
-        {text}
-      </div>
-    </div>
-  );
-}
-
-function renderCard(text: string, m: Motion) {
   return (
     <div
       style={{
         position: "absolute",
         top: "50%",
         left: "50%",
-        width: "62%",
-        maxWidth: 980,
-        transform: `translate(-58%, -50%) scale(${m.scale})`,
+        width: "82%",
+        textAlign: "center",
+        transform: `translate(-50%, calc(-50% + ${m.depth}px)) scale(${m.scale})`,
+        opacity: m.progress,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: FONT_STACK,
+          fontSize: 96,
+          fontWeight: 800,
+          color: GOLD_BRIGHT,
+          letterSpacing: `${m.tracking}px`,
+          lineHeight: 1.15,
+          filter: `blur(${m.blur}px)`,
+          textShadow:
+            "0 2px 0 rgba(11,11,11,0.9), 2px 0 0 rgba(11,11,11,0.9), -2px 0 0 rgba(11,11,11,0.9), 0 14px 40px rgba(0,0,0,0.6)",
+        }}
+      >
+        {text}
+      </div>
+      <div
+        style={{
+          width: 220,
+          height: 2,
+          margin: "26px auto 0",
+          background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)`,
+          transform: `scaleX(${lineScale})`,
+          boxShadow: `0 0 14px rgba(212,175,55,0.6)`,
+        }}
+      />
+    </div>
+  );
+}
+
+function renderChapterTitle(text: string, time: number, start: number, end: number, m: Motion, chapterNumber: number) {
+  const lineScale = popLine(time, start, end);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: "70%",
+        textAlign: "center",
+        transform: `translate(-50%, calc(-50% + ${m.depth}px)) scale(${m.scale})`,
+        opacity: m.progress,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: FONT_STACK,
+          fontSize: 22,
+          fontWeight: 700,
+          letterSpacing: "6px",
+          color: GOLD,
+          marginBottom: 16,
+        }}
+      >
+        CHAPTER {String(chapterNumber).padStart(2, "0")}
+      </div>
+      <div
+        style={{
+          width: 120,
+          height: 2,
+          margin: "0 auto 22px",
+          background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)`,
+          transform: `scaleX(${lineScale})`,
+          boxShadow: `0 0 14px rgba(212,175,55,0.6)`,
+        }}
+      />
+      <div
+        style={{
+          fontFamily: FONT_STACK,
+          fontSize: 62,
+          fontWeight: 800,
+          color: WHITE,
+          letterSpacing: `${m.tracking * 0.4}px`,
+          filter: `blur(${m.blur}px)`,
+          textShadow: "0 10px 32px rgba(0,0,0,0.6)",
+        }}
+      >
+        {text}
+      </div>
+    </div>
+  );
+}
+
+// Large "full-screen" card — 88% wide / 76% tall, NOT edge-to-edge. Keeping
+// a visible green margin around the panel is what keeps the whole segment
+// keyable; a literal 0-margin black scrim would stain the chroma itself.
+function renderCard(text: string, time: number, start: number, end: number, m: Motion) {
+  const lineScale = popLine(time, start, end);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: "88%",
+        height: "76%",
+        transform: `translate(-50%, -50%) scale(${m.scale})`,
         opacity: m.progress,
       }}
     >
       <div
         style={{
           position: "relative",
-          background: PANEL,
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 4,
-          padding: "44px 52px",
-          boxShadow: "0 30px 90px -24px rgba(0,0,0,0.6)",
+          width: "100%",
+          height: "100%",
+          borderRadius: 18,
+          background: `linear-gradient(160deg, rgba(11,11,11,0.92), rgba(74,46,18,0.85))`,
+          border: `1px solid rgba(212,175,55,0.45)`,
+          boxShadow: "0 40px 100px -20px rgba(0,0,0,0.7)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "60px 90px",
         }}
       >
         <div
           style={{
             position: "absolute",
             top: 0,
-            left: 0,
-            width: "22%",
-            height: 1,
-            background: GOLD,
-            opacity: 0.65,
+            left: "20%",
+            right: "20%",
+            height: 3,
+            background: `linear-gradient(90deg, transparent, ${GOLD}, ${GOLD_BRIGHT}, transparent)`,
+            transform: `scaleX(${lineScale})`,
+            boxShadow: `0 0 16px rgba(212,175,55,0.6)`,
           }}
         />
-        <div
-          style={{
-            position: "absolute",
-            top: 20,
-            left: 20,
-            width: 20,
-            height: 20,
-            borderTop: `1px solid ${GOLD}`,
-            borderLeft: `1px solid ${GOLD}`,
-            opacity: 0.5,
-          }}
-        />
+
+        {[
+          { top: 26, left: 26, borderTop: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` },
+          { top: 26, right: 26, borderTop: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` },
+          { bottom: 26, left: 26, borderBottom: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` },
+          { bottom: 26, right: 26, borderBottom: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` },
+        ].map((pos, i) => (
+          <div key={i} style={{ position: "absolute", width: 24, height: 24, opacity: 0.6, ...pos }} />
+        ))}
 
         <div
           style={{
             fontFamily: FONT_STACK,
-            fontSize: 42,
-            fontWeight: 500,
-            color: PLATINUM,
-            textAlign: "left",
-            lineHeight: 1.45,
-            letterSpacing: `${m.tracking * 0.3}px`,
+            fontSize: 56,
+            fontWeight: 700,
+            color: WHITE,
+            textAlign: "center",
+            lineHeight: 1.4,
             filter: `blur(${m.blur}px)`,
           }}
         >
@@ -362,34 +396,32 @@ function renderCornerLeft(text: string, m: Motion) {
     <div
       style={{
         position: "absolute",
-        top: 68,
-        left: 68,
-        transform: `translateX(${-m.depth}px)`,
+        top: 60,
+        left: 60,
         opacity: m.progress,
+        transform: `translateX(${-m.depth}px)`,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
       }}
     >
+      <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD, boxShadow: `0 0 10px ${GOLD}` }} />
       <div
         style={{
           fontFamily: FONT_STACK,
-          fontSize: 22,
-          fontWeight: 600,
-          color: PLATINUM,
-          letterSpacing: `${1.5 + m.tracking * 0.3}px`,
-          textTransform: "uppercase",
-          textShadow: "0 4px 16px rgba(0,0,0,0.5)",
+          fontSize: 28,
+          fontWeight: 700,
+          color: WHITE,
+          background: `rgba(74,46,18,0.55)`,
+          border: `1px solid rgba(212,175,55,0.5)`,
+          padding: "10px 22px",
+          borderRadius: 999,
+          letterSpacing: "0.5px",
+          boxShadow: "0 8px 22px -6px rgba(0,0,0,0.55)",
         }}
       >
         {text}
       </div>
-      <div
-        style={{
-          width: "100%",
-          height: 1,
-          background: GOLD,
-          opacity: 0.6,
-          marginTop: 8,
-        }}
-      />
     </div>
   );
 }
@@ -399,35 +431,33 @@ function renderCornerRight(text: string, m: Motion) {
     <div
       style={{
         position: "absolute",
-        top: 68,
-        right: 68,
-        transform: `translateX(${m.depth}px)`,
+        top: 60,
+        right: 60,
         opacity: m.progress,
-        textAlign: "right",
+        transform: `translateX(${m.depth}px)`,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexDirection: "row-reverse",
       }}
     >
+      <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD, boxShadow: `0 0 10px ${GOLD}` }} />
       <div
         style={{
           fontFamily: FONT_STACK,
-          fontSize: 22,
-          fontWeight: 600,
-          color: PLATINUM,
-          letterSpacing: `${1.5 + m.tracking * 0.3}px`,
-          textTransform: "uppercase",
-          textShadow: "0 4px 16px rgba(0,0,0,0.5)",
+          fontSize: 28,
+          fontWeight: 700,
+          color: WHITE,
+          background: `rgba(74,46,18,0.55)`,
+          border: `1px solid rgba(212,175,55,0.5)`,
+          padding: "10px 22px",
+          borderRadius: 999,
+          letterSpacing: "0.5px",
+          boxShadow: "0 8px 22px -6px rgba(0,0,0,0.55)",
         }}
       >
         {text}
       </div>
-      <div
-        style={{
-          width: "100%",
-          height: 1,
-          background: GOLD,
-          opacity: 0.6,
-          marginTop: 8,
-        }}
-      />
     </div>
   );
 }
@@ -437,9 +467,9 @@ function renderAnimatedText(text: string, m: Motion) {
     <div
       style={{
         position: "absolute",
-        bottom: "16%",
+        bottom: 200,
         left: "50%",
-        width: "60%",
+        width: "78%",
         textAlign: "center",
         transform: `translate(-50%, ${m.depth}px)`,
         opacity: m.progress,
@@ -448,12 +478,11 @@ function renderAnimatedText(text: string, m: Motion) {
       <div
         style={{
           fontFamily: FONT_STACK,
-          fontSize: 34,
-          fontWeight: 500,
-          color: PLATINUM,
-          letterSpacing: `${m.tracking * 0.3}px`,
+          fontSize: 46,
+          fontWeight: 700,
+          color: GOLD_BRIGHT,
           filter: `blur(${m.blur}px)`,
-          textShadow: "0 6px 20px rgba(0,0,0,0.5)",
+          textShadow: "0 8px 24px rgba(0,0,0,0.55)",
         }}
       >
         {text}
@@ -462,16 +491,9 @@ function renderAnimatedText(text: string, m: Motion) {
   );
 }
 
-function renderSegment(
-  segment: any,
-  frame: number,
-  fps: number,
-  key: number,
-  chapterNumber: number
-) {
+function renderSegment(segment: any, time: number, frame: number, fps: number, key: number, chapterNumber: number) {
   const { type, text, start, end } = segment;
 
-  // Captions are handled by a separate pipeline step — never render them here.
   if (type === "caption") {
     return null;
   }
@@ -482,15 +504,15 @@ function renderSegment(
 
   switch (type) {
     case "full_screen_title":
-      content = renderFullScreenTitle(text, m);
+      content = renderFullScreenTitle(text, time, start, end, m);
       break;
     case "chapter_title":
-      content = renderChapterTitle(text, m, chapterNumber);
+      content = renderChapterTitle(text, time, start, end, m, chapterNumber);
       break;
     case "card":
     case "fact":
     case "quote":
-      content = renderCard(text, m);
+      content = renderCard(text, time, start, end, m);
       break;
     case "corner_left":
     case "label":
@@ -539,6 +561,7 @@ export const AutomatedVideo: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: GREEN }}>
+      <BackgroundFrame frame={frame} />
 
       {segments.map((segment, index) => {
         if (segment.type === "chapter_title") {
@@ -549,7 +572,7 @@ export const AutomatedVideo: React.FC = () => {
           return null;
         }
 
-        return renderSegment(segment, frame, fps, index, chapterCount);
+        return renderSegment(segment, time, frame, fps, index, chapterCount);
       })}
     </AbsoluteFill>
   );

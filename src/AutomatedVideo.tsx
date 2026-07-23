@@ -14,9 +14,11 @@ import {
 import editingPlan from "./editing_plan.json";
 
 // ---------------------------------------------------------------------------
-// PALETTE — 60% gold / 30% black / 10% coffee, white as the crisp accent.
-// Structural frame lines stay pure white and thin: nothing here is
-// full-bleed over the green, so the chroma key is never touched.
+// PALETTE
+// full_screen_title / chapter_title / ambient lines: thin white, chroma-safe.
+// card / corner labels / fallback: gold + black + coffee + white (unchanged
+// from before). ribbon: orange, deliberately — a one-off accent for that
+// specific element, not the overall palette.
 // ---------------------------------------------------------------------------
 
 const GREEN = "#00FF00";
@@ -25,9 +27,13 @@ const GOLD_BRIGHT = "#F2C14E";
 const BLACK = "#0B0B0B";
 const COFFEE = "#4A2E12";
 const WHITE = "#FFFFFF";
+const ORANGE = "#E8650A";
+const ORANGE_DEEP = "#C2440A";
 
-// Local fonts already sitting in /public — fix the filenames/paths below to
-// match what you actually have.
+// Brand kicker shown on every full_screen_title. Edit this one line only.
+const KICKER_LABEL = "MICHAEL KVON";
+
+// Local fonts already sitting in /public — fix filenames/paths to match yours.
 const FONT_STACK = "'Helvetica Local', 'Noto Local', Arial, sans-serif";
 
 const segments: any[] = editingPlan.editing_plan ?? [];
@@ -38,7 +44,44 @@ export const TOTAL_DURATION = lastSegment?.end ?? 10;
 const cineEase = Easing.out(Easing.cubic);
 
 // ---------------------------------------------------------------------------
-// MOTION
+// TIME-BASED HELPERS — plain interpolate() driven directly by local segment
+// time (seconds since the segment started). This is what full_screen_title
+// and chapter_title use: simple, predictable, easy to read as a timeline.
+// ---------------------------------------------------------------------------
+
+function smoothSlide(time: number, t1: number, t2: number, from: number, to: number): number {
+  const safeT2 = Math.max(t2, t1 + 0.001);
+  return interpolate(time, [t1, safeT2], [from, to], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: cineEase,
+  });
+}
+
+function fadeInOnly(time: number, t1: number, dur: number): number {
+  const t2 = t1 + Math.max(dur, 0.001);
+  return interpolate(time, [t1, t2], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: cineEase,
+  });
+}
+
+function fadeInOut(time: number, t1: number, t2: number, t3: number, t4: number): number {
+  const p1 = t1;
+  const p2 = Math.max(t2, p1 + 0.001);
+  const p3 = Math.max(t3, p2 + 0.001);
+  const p4 = Math.max(t4, p3 + 0.001);
+  return interpolate(time, [p1, p2, p3, p4], [0, 1, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: cineEase,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// SPRING-BASED MOTION — still used by card / corner labels / fallback,
+// unchanged from before.
 // ---------------------------------------------------------------------------
 
 const ENTER_SECONDS = 0.6;
@@ -99,11 +142,6 @@ function getMotion(frame: number, fps: number, start: number, end: number): Moti
   return { progress, blur, depth, scale, tracking };
 }
 
-/**
- * Progress-line pop: grows 0 -> 1 over up to 3 seconds (clamped to the
- * segment length if it's shorter), holds, then fades smoothly near the end.
- * Time-based (seconds), epsilon-guarded against short/zero-length segments.
- */
 function popLine(time: number, start: number, end: number, growSeconds = 3, outSeconds = 0.5): number {
   const duration = Math.max(end - start, 0.05);
   const safeGrow = Math.min(growSeconds, Math.max(duration - 0.05, 0.05));
@@ -122,65 +160,10 @@ function popLine(time: number, start: number, end: number, growSeconds = 3, outS
 }
 
 // ---------------------------------------------------------------------------
-// STRUCTURAL FRAME ELEMENTS
+// AMBIENT LINES — 2 thin drifting hairlines only. Corner brackets removed.
 // ---------------------------------------------------------------------------
 
-function CornerBracket({
-  top,
-  left,
-  right,
-  bottom,
-  flipX,
-  flipY,
-}: {
-  top?: number;
-  left?: number;
-  right?: number;
-  bottom?: number;
-  flipX?: boolean;
-  flipY?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top,
-        left,
-        right,
-        bottom,
-        width: 42,
-        height: 42,
-        opacity: 0.25,
-        transform: `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`,
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 42,
-          height: 1,
-          background: WHITE,
-          boxShadow: "0 0 5px 1px rgba(0,0,0,0.5)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: 1,
-          height: 42,
-          background: WHITE,
-          boxShadow: "0 0 5px 1px rgba(0,0,0,0.5)",
-        }}
-      />
-    </div>
-  );
-}
-
-function BackgroundFrame({ frame }: { frame: number }) {
+function AmbientLines({ frame }: { frame: number }) {
   const lines = [
     { top: "10%", widthPct: 16, phase: 0 },
     { top: "50%", widthPct: 8, phase: 3.1 },
@@ -207,21 +190,37 @@ function BackgroundFrame({ frame }: { frame: number }) {
           />
         );
       })}
-
-      <CornerBracket top={64} left={64} />
-      <CornerBracket top={64} right={64} flipX />
-      <CornerBracket bottom={64} left={64} flipY />
-      <CornerBracket bottom={64} right={64} flipX flipY />
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// OVERLAY RENDERERS
+// FULL SCREEN TITLE — thin-line luxury sequence, driven by local segment
+// time exactly like the animation-order spec: line grows, kicker fades,
+// title scales+rises, subtitle fades in later, bottom line grows, whole
+// card fades away near the end.
 // ---------------------------------------------------------------------------
 
-function renderFullScreenTitle(text: string, time: number, start: number, end: number, m: Motion) {
-  const lineScale = popLine(time, start, end);
+function renderFullScreenTitle(text: string, time: number, start: number, end: number) {
+  const localTime = time - start;
+  const duration = Math.max(end - start, 0.3);
+  // scales the whole sequence down proportionally if the segment is shorter
+  // than ~4s, so short titles never overlap their own fade-out
+  const k = Math.min(1, duration / 4);
+
+  const topLineWidth = smoothSlide(localTime, 0.15 * k, 0.6 * k, 0, 260);
+  const kickerOpacity = fadeInOnly(localTime, 0.2 * k, 0.25 * k);
+  const titleScale = smoothSlide(localTime, 0, 0.55 * k, 0.92, 1);
+  const titleY = smoothSlide(localTime, 0, 0.55 * k, 18, 0);
+  const subtitleOpacity = fadeInOnly(localTime, 0.6 * k, 0.35 * k);
+  const bottomLineWidth = smoothSlide(localTime, 0.8 * k, 1.2 * k, 0, 260);
+
+  const outStart = Math.max(duration - Math.min(0.6, duration * 0.2), 0.9 * k);
+  const cardOpacity = fadeInOut(localTime, 0, 0.05, outStart, duration);
+
+  const parts = text.split("|").map((s) => s.trim());
+  const titleLine = parts[0];
+  const subtitleLine = parts[1];
 
   return (
     <div
@@ -229,87 +228,211 @@ function renderFullScreenTitle(text: string, time: number, start: number, end: n
         position: "absolute",
         top: "50%",
         left: "50%",
-        width: "82%",
+        width: "72%",
         textAlign: "center",
-        transform: `translate(-50%, calc(-50% + ${m.depth}px)) scale(${m.scale})`,
-        opacity: m.progress,
+        transform: "translate(-50%, -50%)",
+        opacity: cardOpacity,
       }}
     >
       <div
         style={{
-          fontFamily: FONT_STACK,
-          fontSize: 96,
-          fontWeight: 800,
-          color: GOLD_BRIGHT,
-          letterSpacing: `${m.tracking}px`,
-          lineHeight: 1.15,
-          filter: `blur(${m.blur}px)`,
-          textShadow:
-            "0 2px 0 rgba(11,11,11,0.9), 2px 0 0 rgba(11,11,11,0.9), -2px 0 0 rgba(11,11,11,0.9), 0 14px 40px rgba(0,0,0,0.6)",
+          width: topLineWidth,
+          height: 2,
+          margin: "0 auto 26px",
+          background: WHITE,
+          boxShadow: "0 0 8px rgba(255,255,255,0.4)",
         }}
-      >
-        {text}
-      </div>
+      />
+
       <div
         style={{
-          width: 220,
+          opacity: kickerOpacity,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
+          marginBottom: 22,
+        }}
+      >
+        <div
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: GOLD,
+            boxShadow: `0 0 8px ${GOLD}`,
+          }}
+        />
+        <div
+          style={{
+            fontFamily: FONT_STACK,
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: "4px",
+            color: GOLD,
+            textTransform: "uppercase",
+          }}
+        >
+          {KICKER_LABEL}
+        </div>
+      </div>
+
+      <div style={{ transform: `scale(${titleScale}) translateY(${titleY}px)` }}>
+        <div
+          style={{
+            fontFamily: FONT_STACK,
+            fontSize: 84,
+            fontWeight: 800,
+            color: WHITE,
+            letterSpacing: "1px",
+            lineHeight: 1.15,
+            textShadow: "0 10px 30px rgba(0,0,0,0.6)",
+          }}
+        >
+          {titleLine}
+        </div>
+      </div>
+
+      {subtitleLine && (
+        <div style={{ opacity: subtitleOpacity, marginTop: 20 }}>
+          <div
+            style={{
+              fontFamily: FONT_STACK,
+              fontSize: 30,
+              fontWeight: 500,
+              color: GOLD_BRIGHT,
+              letterSpacing: "0.5px",
+            }}
+          >
+            {subtitleLine}
+          </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          width: bottomLineWidth,
           height: 2,
           margin: "26px auto 0",
-          background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)`,
-          transform: `scaleX(${lineScale})`,
-          boxShadow: `0 0 14px rgba(212,175,55,0.6)`,
+          background: WHITE,
+          boxShadow: "0 0 8px rgba(255,255,255,0.4)",
         }}
       />
     </div>
   );
 }
 
-function renderChapterTitle(text: string, time: number, start: number, end: number, m: Motion, chapterNumber: number) {
-  const lineScale = popLine(time, start, end);
+// ---------------------------------------------------------------------------
+// CORNER CHAPTER — top banner, "VIDEO" kicker left, chapter number slides
+// in from the right, thin line underneath.
+// ---------------------------------------------------------------------------
+
+function renderChapterTitle(text: string, time: number, start: number, end: number, chapterNumber: number) {
+  const localTime = time - start;
+  const duration = Math.max(end - start, 0.3);
+
+  const chapterX = smoothSlide(localTime, 0, 0.4, 30, 0);
+  const lineScale = smoothSlide(localTime, 0.1, 0.5, 0, 1);
+  const opacity = fadeInOut(localTime, 0, 0.35, Math.max(duration - 0.4, 0.36), duration);
 
   return (
     <div
       style={{
         position: "absolute",
-        top: "50%",
-        left: "50%",
-        width: "70%",
-        textAlign: "center",
-        transform: `translate(-50%, calc(-50% + ${m.depth}px)) scale(${m.scale})`,
-        opacity: m.progress,
+        top: 64,
+        left: 64,
+        right: 64,
+        opacity,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div
+          style={{
+            fontFamily: FONT_STACK,
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: "5px",
+            color: WHITE,
+            textTransform: "uppercase",
+            opacity: 0.85,
+          }}
+        >
+          VIDEO
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_STACK,
+            fontSize: 22,
+            fontWeight: 700,
+            letterSpacing: "3px",
+            color: GOLD,
+            textTransform: "uppercase",
+            transform: `translateX(${chapterX}px)`,
+          }}
+        >
+          CHAPTER {String(chapterNumber).padStart(2, "0")}
+        </div>
+      </div>
+      <div
+        style={{
+          height: 1,
+          background: WHITE,
+          marginTop: 14,
+          opacity: 0.5,
+          transform: `scaleX(${lineScale})`,
+          transformOrigin: "left",
+        }}
+      />
+      {text ? (
+        <div
+          style={{
+            fontFamily: FONT_STACK,
+            fontSize: 15,
+            color: WHITE,
+            opacity: 0.55,
+            marginTop: 10,
+          }}
+        >
+          {text}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CAPTION RIBBON — boxed, orange gradient, pop-in, upper-left.
+// ---------------------------------------------------------------------------
+
+function renderRibbon(text: string, time: number, start: number, end: number) {
+  const localTime = time - start;
+  const duration = Math.max(end - start, 0.3);
+
+  const pop = smoothSlide(localTime, 0, 0.3, 0.8, 1);
+  const opacity = fadeInOut(localTime, 0, 0.2, Math.max(duration - 0.3, 0.21), duration);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 64,
+        left: 64,
+        opacity,
+        transform: `scale(${pop})`,
+        transformOrigin: "left top",
       }}
     >
       <div
         style={{
           fontFamily: FONT_STACK,
-          fontSize: 22,
-          fontWeight: 700,
-          letterSpacing: "6px",
-          color: GOLD,
-          marginBottom: 16,
-        }}
-      >
-        CHAPTER {String(chapterNumber).padStart(2, "0")}
-      </div>
-      <div
-        style={{
-          width: 120,
-          height: 2,
-          margin: "0 auto 22px",
-          background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)`,
-          transform: `scaleX(${lineScale})`,
-          boxShadow: `0 0 14px rgba(212,175,55,0.6)`,
-        }}
-      />
-      <div
-        style={{
-          fontFamily: FONT_STACK,
-          fontSize: 62,
+          fontSize: 28,
           fontWeight: 800,
           color: WHITE,
-          letterSpacing: `${m.tracking * 0.4}px`,
-          filter: `blur(${m.blur}px)`,
-          textShadow: "0 10px 32px rgba(0,0,0,0.6)",
+          background: `linear-gradient(120deg, ${ORANGE}, ${ORANGE_DEEP})`,
+          padding: "14px 30px",
+          borderRadius: 10,
+          boxShadow: "0 12px 30px -8px rgba(0,0,0,0.6)",
+          letterSpacing: "0.5px",
         }}
       >
         {text}
@@ -318,9 +441,11 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
   );
 }
 
-// Large "full-screen" card — 88% wide / 76% tall, NOT edge-to-edge. Keeping
-// a visible green margin around the panel is what keeps the whole segment
-// keyable; a literal 0-margin black scrim would stain the chroma itself.
+// ---------------------------------------------------------------------------
+// CARD / CORNER LABELS / FALLBACK — unchanged, still spring-driven,
+// gold + black + coffee + white.
+// ---------------------------------------------------------------------------
+
 function renderCard(text: string, time: number, start: number, end: number, m: Motion) {
   const lineScale = popLine(time, start, end);
 
@@ -498,32 +623,41 @@ function renderSegment(segment: any, time: number, frame: number, fps: number, k
     return null;
   }
 
-  const m = getMotion(frame, fps, start, end);
-
   let content: React.ReactNode;
 
   switch (type) {
     case "full_screen_title":
-      content = renderFullScreenTitle(text, time, start, end, m);
+      content = renderFullScreenTitle(text, time, start, end);
       break;
     case "chapter_title":
-      content = renderChapterTitle(text, time, start, end, m, chapterNumber);
+      content = renderChapterTitle(text, time, start, end, chapterNumber);
+      break;
+    case "ribbon":
+      content = renderRibbon(text, time, start, end);
       break;
     case "card":
     case "fact":
-    case "quote":
+    case "quote": {
+      const m = getMotion(frame, fps, start, end);
       content = renderCard(text, time, start, end, m);
       break;
+    }
     case "corner_left":
-    case "label":
+    case "label": {
+      const m = getMotion(frame, fps, start, end);
       content = renderCornerLeft(text, m);
       break;
-    case "corner_right":
+    }
+    case "corner_right": {
+      const m = getMotion(frame, fps, start, end);
       content = renderCornerRight(text, m);
       break;
-    default:
+    }
+    default: {
+      const m = getMotion(frame, fps, start, end);
       content = renderAnimatedText(text, m);
       break;
+    }
   }
 
   return <React.Fragment key={key}>{content}</React.Fragment>;
@@ -561,7 +695,7 @@ export const AutomatedVideo: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: GREEN }}>
-      <BackgroundFrame frame={frame} />
+      <AmbientLines frame={frame} />
 
       {segments.map((segment, index) => {
         if (segment.type === "chapter_title") {
