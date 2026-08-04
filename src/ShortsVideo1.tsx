@@ -20,23 +20,16 @@ const GOLD = "#F5A623";
 const WHITE = "#FFFFFF";
 const BLACK = "#000000";
 
-// A premium serif/sans mix reads far less "template" than
-// maxing every element to font-weight 900.
-const SANS = "'Inter', 'Helvetica Neue', Arial, sans-serif";
-const SERIF = "'Georgia', 'Times New Roman', serif";
-
-// How long (in seconds) an effect stays "active" after its trigger time.
-// These were too short before -> felt abrupt. Widened + effects now
-// crossfade in AND out instead of clamping hard.
+// how long (in seconds) an effect stays "active" after its trigger time
 const EFFECT_WINDOW: Record<string, number> = {
-  hook_zoom: 1.6,
-  impact_flash: 0.6,
-  highlight: 2.6,
-  chapter: 3.2,
-  pause: 2.4,
-  quote: 4.5,
-  dramatic_hold: 3.5,
-  final_punch: 3.0,
+  hook_zoom: 0.9,
+  impact_flash: 0.35,
+  highlight: 1.6,
+  chapter: 1.8,
+  pause: 1.4,
+  quote: 3.0,
+  dramatic_hold: 2.2,
+  final_punch: 1.6,
 };
 
 export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
@@ -61,12 +54,6 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
   const shorts: any[] = shortsPlan.shorts;
   const short = shorts.find((s: any) => s.id === shortId) || shorts[0];
 
-  // IMPORTANT: video.mp4 is already the pre-cut short clip.
-  // short.start / short.end are only reference timestamps from the
-  // ORIGINAL long-form video, used to line captions/effects up with
-  // this already-cut file. They must NOT be used to trim the Video
-  // component again (that was cutting into the wrong frames /
-  // truncating scenes). The clip always plays start-to-finish.
   const localTime = time + short.start;
 
   const activeCaption = short.captions?.find(
@@ -75,12 +62,10 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
 
   const effects: any[] = short.effects || [];
 
-  // Returns the most recently triggered effect of a given type,
-  // still inside its (now longer) active window, plus elapsed frames
-  // so we can build smooth in -> hold -> out curves instead of a
-  // single hard on/off toggle.
+  // Returns the most recently triggered effect of a given type
+  // that is still within its active window, plus normalized progress (0-1)
   const getActiveEffect = (type: string) => {
-    const window = EFFECT_WINDOW[type] ?? 1.5;
+    const window = EFFECT_WINDOW[type] ?? 1.0;
     const candidates = effects.filter((e) => e.type === type);
     let best: any = null;
     for (const e of candidates) {
@@ -91,57 +76,38 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
     }
     if (!best) return null;
     const elapsedFrames = (localTime - best.time) * fps;
-    const windowFrames = window * fps;
-    return { effect: best, elapsedFrames, windowFrames, window };
+    return { effect: best, elapsedFrames, window };
   };
-
-  // Smooth crossfade helper: fades in over `inFrames`, holds, fades
-  // out over the final `outFrames` of the window. Replaces the old
-  // hard clamp which is what made effects feel like they "snapped".
-  const fadeInOut = (
-    elapsedFrames: number,
-    windowFrames: number,
-    inFrames = 12,
-    outFrames = 18
-  ) =>
-    interpolate(
-      elapsedFrames,
-      [0, inFrames, windowFrames - outFrames, windowFrames],
-      [0, 1, 1, 0],
-      {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-        easing: Easing.bezier(0.22, 1, 0.36, 1),
-      }
-    );
 
   // ---------- HOOK ----------
 
-  const hookOpacity = interpolate(frame, [0, 24], [0, 1], {
+  const hookOpacity = interpolate(frame, [0, 20], [0, 1], {
     extrapolateRight: "clamp",
-    easing: Easing.out(Easing.cubic),
-  });
-  const hookRise = interpolate(frame, [0, 24], [14, 0], {
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.cubic),
   });
 
   const hookZoom = getActiveEffect("hook_zoom");
   const hookZoomScale = hookZoom
-    ? spring({
+  ? interpolate(
+      spring({
         frame: hookZoom.elapsedFrames,
         fps,
-        config: { damping: 26, stiffness: 60, mass: 1 },
-        from: 1.12,
-        to: 1,
-      })
-    : 1;
+        config: {
+          damping: 18,
+          stiffness: 120,
+          mass: 0.6,
+        },
+      }),
+      [0, 1],
+      [1.18, 1]
+    )
+  : 1;
   const hookZoomBlur = hookZoom
-    ? interpolate(hookZoom.elapsedFrames, [0, 14], [4, 0], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-        easing: Easing.out(Easing.ease),
-      })
+    ? interpolate(
+        hookZoom.elapsedFrames,
+        [0, 6],
+        [6, 0],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+      )
     : 0;
 
   // ---------- IMPACT FLASH ----------
@@ -150,41 +116,59 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
   const impactFlashOpacity = impactFlash
     ? interpolate(
         impactFlash.elapsedFrames,
-        [0, 3, impactFlash.windowFrames],
-        [0, 0.55, 0],
-        {
-          extrapolateRight: "clamp",
-          easing: Easing.out(Easing.cubic),
-        }
+        [0, 2, 10],
+        [0, 0.85, 0],
+        { extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) }
       )
     : 0;
 
   // ---------- HIGHLIGHT ----------
 
   const highlight = getActiveEffect("highlight");
-  const highlightFade = highlight
-    ? fadeInOut(highlight.elapsedFrames, highlight.windowFrames, 10, 20)
+  const highlightProgress = highlight
+    ? spring({
+        frame: highlight.elapsedFrames,
+        fps,
+        config: { damping: 14, stiffness: 140 },
+      })
+    : 0;
+  const highlightFadeOut = highlight
+    ? interpolate(
+        highlight.elapsedFrames,
+        [highlight.window * fps - 12, highlight.window * fps],
+        [1, 0],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+      )
+    : 0;
+  const highlightOpacity = highlight
+    ? Math.min(highlightProgress, highlightFadeOut)
     : 0;
   const highlightScale = highlight
-    ? interpolate(highlight.elapsedFrames, [0, 16], [0.92, 1], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-        easing: Easing.out(Easing.back(1.3)),
-      })
+    ? interpolate(highlightProgress, [0, 1], [0.85, 1])
     : 1;
 
   // ---------- CHAPTER ----------
 
   const chapter = getActiveEffect("chapter");
-  const chapterFade = chapter
-    ? fadeInOut(chapter.elapsedFrames, chapter.windowFrames, 14, 24)
+  const chapterProgress = chapter
+    ? spring({
+        frame: chapter.elapsedFrames,
+        fps,
+        config: { damping: 20, stiffness: 100 },
+      })
     : 0;
   const chapterLineWidth = chapter
-    ? interpolate(chapter.elapsedFrames, [0, 26], [0, 120], {
-        extrapolateLeft: "clamp",
+    ? interpolate(chapterProgress, [0, 1], [0, 140], {
         extrapolateRight: "clamp",
-        easing: Easing.out(Easing.cubic),
       })
+    : 0;
+  const chapterOpacity = chapter
+    ? interpolate(
+        chapter.elapsedFrames,
+        [0, 8, chapter.window * fps - 10, chapter.window * fps],
+        [0, 1, 1, 0],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+      )
     : 0;
 
   // ---------- PAUSE (breath / dramatic beat) ----------
@@ -193,26 +177,33 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
   const pauseDarken = pause
     ? interpolate(
         pause.elapsedFrames,
-        [0, pause.windowFrames * 0.5, pause.windowFrames],
-        [0, 0.28, 0],
-        { extrapolateRight: "clamp", easing: Easing.inOut(Easing.ease) }
+        [0, pause.window * fps * 0.5, pause.window * fps],
+        [0, 0.35, 0],
+        { extrapolateRight: "clamp" }
       )
     : 0;
   const pauseZoom = pause
-    ? interpolate(pause.elapsedFrames, [0, pause.windowFrames], [1, 1.025], {
-        extrapolateRight: "clamp",
-        easing: Easing.inOut(Easing.ease),
-      })
+    ? interpolate(
+        pause.elapsedFrames,
+        [0, pause.window * fps],
+        [1, 1.03],
+        { extrapolateRight: "clamp", easing: Easing.inOut(Easing.ease) }
+      )
     : 1;
 
   // ---------- QUOTE ----------
 
   const quote = getActiveEffect("quote");
-  const quoteFade = quote
-    ? fadeInOut(quote.elapsedFrames, quote.windowFrames, 18, 26)
+  const quoteOpacity = quote
+    ? interpolate(
+        quote.elapsedFrames,
+        [0, 10, quote.window * fps - 12, quote.window * fps],
+        [0, 1, 1, 0],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+      )
     : 0;
   const quoteRise = quote
-    ? interpolate(quote.elapsedFrames, [0, 22], [18, 0], {
+    ? interpolate(quote.elapsedFrames, [0, 14], [24, 0], {
         extrapolateRight: "clamp",
         easing: Easing.out(Easing.cubic),
       })
@@ -224,25 +215,25 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
   const dramaticZoom = dramaticHold
     ? interpolate(
         dramaticHold.elapsedFrames,
-        [0, dramaticHold.windowFrames],
-        [1, 1.045],
+        [0, dramaticHold.window * fps],
+        [1, 1.06],
         { extrapolateRight: "clamp", easing: Easing.inOut(Easing.ease) }
       )
     : 1;
   const dramaticDesaturate = dramaticHold
     ? interpolate(
         dramaticHold.elapsedFrames,
-        [0, dramaticHold.windowFrames * 0.5],
-        [0, 0.4],
-        { extrapolateRight: "clamp", easing: Easing.out(Easing.ease) }
+        [0, dramaticHold.window * fps * 0.4],
+        [0, 0.5],
+        { extrapolateRight: "clamp" }
       )
     : 0;
   const dramaticVignette = dramaticHold
     ? interpolate(
         dramaticHold.elapsedFrames,
-        [0, dramaticHold.windowFrames * 0.5],
-        [0, 0.4],
-        { extrapolateRight: "clamp", easing: Easing.out(Easing.ease) }
+        [0, dramaticHold.window * fps * 0.4],
+        [0, 0.45],
+        { extrapolateRight: "clamp" }
       )
     : 0;
 
@@ -250,21 +241,28 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
 
   const finalPunch = getActiveEffect("final_punch");
   const finalPunchScale = finalPunch
-    ? spring({
+  ? interpolate(
+      spring({
         frame: finalPunch.elapsedFrames,
         fps,
-        config: { damping: 18, stiffness: 90, mass: 0.9 },
-        from: 0.9,
-        to: 1,
-      })
-    : 1;
-  const finalPunchFade = finalPunch
-    ? fadeInOut(finalPunch.elapsedFrames, finalPunch.windowFrames, 16, 24)
-    : 0;
-  const finalPunchGlow = finalPunch
-    ? interpolate(finalPunch.elapsedFrames, [0, 4, 30], [0, 0.35, 0], {
+        config: {
+          damping: 10,
+          stiffness: 160,
+          mass: 0.7,
+        },
+      }),
+      [0, 1],
+      [0.7, 1]
+    )
+  : 1;
+  const finalPunchOpacity = finalPunch
+    ? interpolate(finalPunch.elapsedFrames, [0, 10], [0, 1], {
         extrapolateRight: "clamp",
-        easing: Easing.out(Easing.ease),
+      })
+    : 0;
+  const finalPunchFlash = finalPunch
+    ? interpolate(finalPunch.elapsedFrames, [0, 2, 14], [0, 0.6, 0], {
+        extrapolateRight: "clamp",
       })
     : 0;
 
@@ -272,25 +270,22 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
 
   const combinedScale = hookZoomScale * pauseZoom * dramaticZoom;
   const combinedFilter = [
-    hookZoomBlur > 0.3 ? `blur(${hookZoomBlur * 0.35}px)` : "",
+    hookZoomBlur > 0.3 ? `blur(${hookZoomBlur * 0.4}px)` : "",
     dramaticDesaturate > 0 ? `saturate(${1 - dramaticDesaturate * 0.5})` : "",
-    dramaticDesaturate > 0
-      ? `brightness(${1 - dramaticDesaturate * 0.12})`
-      : "",
+    dramaticDesaturate > 0 ? `brightness(${1 - dramaticDesaturate * 0.15})` : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  // Caption enter animation — softened spring, no overshoot snap.
-  const captionSpring = spring({
+  const captionScale = spring({
     frame,
     fps,
-    config: { damping: 22, stiffness: 110, mass: 0.8 },
+    config: { damping: 12, stiffness: 150 },
   });
 
   return (
     <AbsoluteFill style={{ background: BLACK, overflow: "hidden" }}>
-      {/* VIDEO — plays the already-cut clip in full, no re-trimming */}
+      {/* VIDEO */}
       <AbsoluteFill
         style={{
           transform: `scale(${combinedScale})`,
@@ -299,6 +294,8 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
       >
         <Video
           src={staticFile("video.mp4")}
+          startFrom={Math.floor(short.start * fps)}
+          endAt={Math.floor(short.end * fps)}
           pauseWhenBuffering={false}
           delayRenderRetries={0}
           delayRenderTimeoutInMilliseconds={120000}
@@ -314,7 +311,7 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
       <AbsoluteFill
         style={{
           background:
-            "linear-gradient(180deg,rgba(0,0,0,.5),transparent 38%,rgba(0,0,0,.62))",
+            "linear-gradient(180deg,rgba(0,0,0,.55),transparent 40%,rgba(0,0,0,.7))",
         }}
       />
 
@@ -322,7 +319,7 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
       {dramaticHold && (
         <AbsoluteFill
           style={{
-            background: `radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,${dramaticVignette}) 100%)`,
+            background: `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,${dramaticVignette}) 100%)`,
             pointerEvents: "none",
           }}
         />
@@ -349,99 +346,97 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
         />
       )}
 
-      {/* FINAL PUNCH GLOW */}
+      {/* FINAL PUNCH FLASH */}
       {finalPunch && (
         <AbsoluteFill
           style={{
-            background: `radial-gradient(ellipse at center, ${GOLD}, transparent 70%)`,
-            opacity: finalPunchGlow,
+            background: GOLD,
+            opacity: finalPunchFlash * 0.25,
             pointerEvents: "none",
           }}
         />
       )}
 
-      {/* HOOK — lighter weight, tighter tracking, subtle rise-in */}
+      {/* HOOK */}
       <div
         style={{
           position: "absolute",
-          top: 130,
-          left: 60,
-          right: 60,
+          top: 120,
+          left: 50,
+          right: 50,
           opacity: hookOpacity,
-          transform: `translateY(${hookRise}px)`,
-          fontSize: 58,
-          fontWeight: 700,
-          fontFamily: SANS,
+          fontSize: 70,
+          fontWeight: 900,
+          fontFamily: "Inter, sans-serif",
           textAlign: "center",
           color: WHITE,
-          letterSpacing: 0.5,
-          lineHeight: 1.15,
-          textShadow: "0 4px 24px rgba(0,0,0,0.75)",
+          textShadow: "0 5px 20px black",
+          letterSpacing: 1,
         }}
       >
         {short.hook}
       </div>
 
-      {/* CHAPTER MARKER — small caps label, thin gold rule */}
+      {/* CHAPTER MARKER */}
       {chapter && (
         <div
           style={{
             position: "absolute",
-            top: 250,
+            top: 240,
             left: 0,
             right: 0,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            opacity: chapterFade,
+            opacity: chapterOpacity,
           }}
         >
           <div
             style={{
               width: chapterLineWidth,
-              height: 1,
+              height: 2,
               background: GOLD,
-              marginBottom: 16,
+              marginBottom: 14,
             }}
           />
           <div
             style={{
-              fontSize: 22,
-              fontWeight: 600,
-              letterSpacing: 7,
+              fontSize: 26,
+              fontWeight: 700,
+              letterSpacing: 6,
               color: GOLD,
-              fontFamily: SANS,
+              fontFamily: "Inter, sans-serif",
               textTransform: "uppercase",
             }}
           >
-            {chapter.effect.text || "CHAPTER"}
+            {chapter.effect.text || ""}
           </div>
         </div>
       )}
 
-      {/* HIGHLIGHT WORD — serif accent instead of maxed bold sans */}
+      {/* HIGHLIGHT WORD */}
       {highlight && (
         <div
           style={{
             position: "absolute",
-            top: "40%",
+            top: "38%",
             left: 40,
             right: 40,
             display: "flex",
             justifyContent: "center",
-            opacity: highlightFade,
+            opacity: highlightOpacity,
             transform: `scale(${highlightScale})`,
           }}
         >
           <div
             style={{
-              fontSize: 72,
-              fontWeight: 700,
+              fontSize: 84,
+              fontWeight: 900,
               color: GOLD,
-              fontFamily: SANS,
+              fontFamily: "Inter, sans-serif",
               textAlign: "center",
-              letterSpacing: 0.5,
-              textShadow: "0 6px 30px rgba(0,0,0,0.6)",
+              textShadow: "0 6px 24px rgba(0,0,0,0.8)",
+              letterSpacing: 1,
             }}
           >
             {highlight.effect.text}
@@ -449,28 +444,28 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
         </div>
       )}
 
-      {/* QUOTE — italic serif, elegant not shouty */}
+      {/* QUOTE */}
       {quote && (
         <div
           style={{
             position: "absolute",
-            bottom: 440,
-            left: 70,
-            right: 70,
-            opacity: quoteFade,
+            bottom: 460,
+            left: 60,
+            right: 60,
+            opacity: quoteOpacity,
             transform: `translateY(${quoteRise}px)`,
             textAlign: "center",
           }}
         >
           <div
             style={{
-              fontSize: 42,
-              fontWeight: 400,
+              fontSize: 50,
+              fontWeight: 600,
               fontStyle: "italic",
               color: WHITE,
-              fontFamily: SERIF,
-              lineHeight: 1.35,
-              textShadow: "0 3px 18px rgba(0,0,0,0.7)",
+              fontFamily: "Georgia, serif",
+              lineHeight: 1.3,
+              textShadow: "0 4px 16px black",
             }}
           >
             <span style={{ color: GOLD }}>&ldquo;</span>
@@ -480,35 +475,30 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
         </div>
       )}
 
-      {/* CAPTION — softened spring, medium weight, no double-max-bold */}
+      {/* CAPTION */}
       {activeCaption && !quote && (
         <div
           style={{
             position: "absolute",
             bottom: 300,
-            left: 50,
-            right: 50,
+            left: 40,
+            right: 40,
             display: "flex",
             justifyContent: "center",
-            transform: `scale(${
-              finalPunch
-                ? finalPunchScale
-                : 0.94 + captionSpring * 0.06
-            })`,
-            opacity: finalPunch ? finalPunchFade : 1,
+            transform: `scale(${finalPunch ? finalPunchScale : captionScale})`,
+            opacity: finalPunch ? finalPunchOpacity : 1,
           }}
         >
           <div
             style={{
-              fontSize: finalPunch ? 62 : 52,
-              fontWeight: finalPunch ? 700 : 600,
+              fontSize: finalPunch ? 74 : 65,
+              fontWeight: 900,
               color: finalPunch ? GOLD : WHITE,
-              fontFamily: SANS,
+              fontFamily: "Inter, sans-serif",
               textAlign: "center",
               whiteSpace: "pre-line",
-              lineHeight: 1.3,
-              letterSpacing: 0.2,
-              textShadow: "0 4px 16px rgba(0,0,0,0.7)",
+              lineHeight: 1.25,
+              textShadow: "0 5px 15px black",
             }}
           >
             {activeCaption.text}
@@ -522,11 +512,10 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
           position: "absolute",
           top: 50,
           left: 50,
-          fontSize: 24,
-          fontWeight: 600,
+          fontSize: 30,
+          fontWeight: 900,
           letterSpacing: 5,
           color: GOLD,
-          fontFamily: SANS,
         }}
       >
         MICHAEL KVON
