@@ -427,7 +427,61 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
         </div>
       )}
 
-      {/* QUOTE — italic serif, elegant not shouty */}
+            {/* LUXURY CARD */}
+      {activeCard && (
+        <>
+          <div
+            style={{
+              position:"absolute",
+              top:80,
+              left:80,
+              width:260,
+              height:4,
+              background:GOLD,
+              transformOrigin:"left",
+              transform:`scaleX(${interpolate(
+                frame % 90,
+                [0,90],
+                [0,1]
+              )})`,
+            }}
+          />
+
+          <div
+            style={{
+              position:"absolute",
+              inset:0,
+              display:"flex",
+              justifyContent:"center",
+              alignItems:"center",
+              padding:80,
+              background:
+                frame % 180 < 90
+                ? BLACK
+                : WHITE,
+            }}
+          >
+            <div
+              style={{
+                color:
+                  frame % 180 < 90
+                  ? WHITE
+                  : BLACK,
+                fontFamily:SANS,
+                fontSize:70,
+                fontWeight:500,
+                textAlign:"center",
+                maxWidth:850,
+                lineHeight:1.2,
+              }}
+            >
+              {activeCard.text}
+            </div>
+          </div>
+        </>
+      )}
+
+            {/* QUOTE — italic serif, elegant not shouty */}
       {quote && (
         <div
           style={{
@@ -448,67 +502,14 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
               color: WHITE,
               fontFamily: SERIF,
               lineHeight: 1.35,
-              textShadow: "0 3px 18px rgba(0,0,0,0.7)",
             }}
           >
-            <span style={{ color: GOLD }}>&ldquo;</span>
+                        <span style={{ color: GOLD }}>&ldquo;</span>
             {quote.effect.text || ""}
             <span style={{ color: GOLD }}>&rdquo;</span>
           </div>
         </div>
       )}
-
-     {/* LUXURY TITLE CARD */}
-{activeCaption && !quote && (
-  <AbsoluteFill
-    style={{
-      background:
-        frame % 180 < 90
-          ? BLACK
-          : WHITE,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 80,
-    }}
-  >
-
-    <div
-      style={{
-        position: "absolute",
-        top: 80,
-        left: 80,
-        width: 260,
-        height: 4,
-        background: GOLD,
-        transformOrigin: "left",
-        transform: `scaleX(${interpolate(
-          frame % 90,
-          [0,90],
-          [0,1]
-        )})`,
-      }}
-    />
-
-    <div
-      style={{
-        color:
-          frame % 180 < 90
-            ? WHITE
-            : BLACK,
-        fontFamily: SANS,
-        fontSize: 70,
-        fontWeight: 500,
-        letterSpacing: 1,
-        textAlign: "center",
-        lineHeight: 1.2,
-        maxWidth: 850,
-      }}
-    >
-      {activeCard?.text}
-    </div>
-
-  </AbsoluteFill>
-)}
 
       {/* BRAND */}
       <div
@@ -525,6 +526,7 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
       >
         MICHAEL KVON
       </div>
+
     </AbsoluteFill>
   );
 };
