@@ -265,7 +265,7 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
     .join(" ");
 
   // Caption enter animation — softened spring, no overshoot snap.
-  
+
   return (
     <AbsoluteFill style={{ background: BLACK, overflow: "hidden" }}>
       {/* VIDEO — plays the already-cut clip in full, no re-trimming */}
@@ -452,7 +452,7 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
             }}
           >
             <span style={{ color: GOLD }}>&ldquo;</span>
-            {quote.effect.text || activeCaption?.text}
+            {quote.effect.text || ""}
             <span style={{ color: GOLD }}>&rdquo;</span>
           </div>
         </div>
