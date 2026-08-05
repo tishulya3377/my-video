@@ -52,10 +52,13 @@ console.log(JSON.stringify(short,null,2));
   
   const localTime = time;
 
-  const activeCard = short.cards?.find(
-  (c:any)=> localTime >= c.start && localTime <= c.end
+const activeMoment = short.moments?.find(
+  (m:any)=> 
+    localTime >= m.start &&
+    localTime <= m.end
 );
 
+  const moments:any[] = short.moments || [];
   const effects: any[] = short.effects || [];
 
   // Returns the most recently triggered effect of a given type,
@@ -264,11 +267,7 @@ console.log(JSON.stringify(short,null,2));
     .filter(Boolean)
     .join(" ");
 
-  // Caption enter animation — softened spring, no overshoot snap.
-
-const cardAge = activeCard
-  ? (time - activeCard.start) * fps
-  : 0;
+  // Overlay timing calculations
 
 return (
     <AbsoluteFill style={{ background: BLACK, overflow: "hidden" }}>
@@ -437,66 +436,6 @@ return (
         </div>
       )}
 
-            {/* LUXURY CARD */}
-      {activeCard && (
-  <div
-    style={{
-      position: "absolute",
-      inset: 0,
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 80,
-      background: BLACK,
-     opacity: interpolate(
-  cardAge,
-  [0, 15],
-  [0, 1],
-  {
-    extrapolateRight: "clamp",
-  }
-),
-    }}
-  >
-
-    {/* ORANGE TIMER LINE */}
-    <div
-      style={{
-        position: "absolute",
-        top: 90,
-        left: 80,
-        width: 260,
-        height: 4,
-        background: GOLD,
-        transformOrigin: "left",
-        transform: `scaleX(${interpolate(
-          frame % 120,
-          [0, 120],
-          [0, 1],
-          {
-            extrapolateRight: "clamp",
-          }
-        )})`,
-      }}
-    />
-
-    <div
-      style={{
-        color: WHITE,
-        fontFamily: SANS,
-        fontSize: 72,
-        fontWeight: 500,
-        letterSpacing: 1,
-        textAlign: "center",
-        maxWidth: 850,
-        lineHeight: 1.15,
-      }}
-    >
-      {activeCard.text}
-    </div>
-
-  </div>
-)}
 
             {/* QUOTE — italic serif, elegant not shouty */}
       {quote && (
