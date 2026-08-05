@@ -49,15 +49,12 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
     (s: any) => s.id === shortId
   ) || shortsPlan.shorts[0];
 
-  // IMPORTANT: video.mp4 is already the pre-cut short clip.
-  // short.start / short.end are only reference timestamps from the
-  // ORIGINAL long-form video, used to line captions/effects up with
-  // this already-cut file. They must NOT be used to trim the Video
-  // component again (that was cutting into the wrong frames /
-  // truncating scenes). The clip always plays start-to-finish.
+  
   const localTime = time;
 
-  const activeCaption = null;
+  const activeCard = short.cards?.find(
+  (c:any)=> localTime >= c.start && localTime <= c.end
+);
 
   const effects: any[] = short.effects || [];
 
@@ -268,12 +265,7 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
     .join(" ");
 
   // Caption enter animation — softened spring, no overshoot snap.
-  const captionSpring = spring({
-    frame,
-    fps,
-    config: { damping: 22, stiffness: 110, mass: 0.8 },
-  });
-
+  
   return (
     <AbsoluteFill style={{ background: BLACK, overflow: "hidden" }}>
       {/* VIDEO — plays the already-cut clip in full, no re-trimming */}
@@ -512,7 +504,7 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
         maxWidth: 850,
       }}
     >
-      {activeCaption.text}
+      {activeCard?.text}
     </div>
 
   </AbsoluteFill>
