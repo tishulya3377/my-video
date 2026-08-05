@@ -266,7 +266,11 @@ console.log(JSON.stringify(short,null,2));
 
   // Caption enter animation — softened spring, no overshoot snap.
 
-  return (
+const cardAge = activeCard
+  ? (time - activeCard.start) * fps
+  : 0;
+
+return (
     <AbsoluteFill style={{ background: BLACK, overflow: "hidden" }}>
       {/* VIDEO — plays the already-cut clip in full, no re-trimming */}
       <AbsoluteFill
@@ -435,59 +439,64 @@ console.log(JSON.stringify(short,null,2));
 
             {/* LUXURY CARD */}
       {activeCard && (
-        <>
-          <div
-            style={{
-              position:"absolute",
-              top:80,
-              left:80,
-              width:260,
-              height:4,
-              background:GOLD,
-              transformOrigin:"left",
-              transform:`scaleX(${interpolate(
-                frame % 90,
-                [0,90],
-                [0,1]
-              )})`,
-            }}
-          />
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 80,
+      background: BLACK,
+     opacity: interpolate(
+  cardAge,
+  [0, 15],
+  [0, 1],
+  {
+    extrapolateRight: "clamp",
+  }
+),
+    }}
+  >
 
-          <div
-            style={{
-              position:"absolute",
-              inset:0,
-              display:"flex",
-              justifyContent:"center",
-              alignItems:"center",
-              padding:80,
-              background:
-                frame % 180 < 90
-                ? BLACK
-                : WHITE,
-            }}
-          >
-            <div
-              style={{
-                color:
-                  frame % 180 < 90
-                  ? WHITE
-                  : BLACK,
-                fontFamily:SANS,
-                fontSize:70,
-                fontWeight:500,
-                textAlign:"center",
-                maxWidth:850,
-                lineHeight:1.2,
-              }}
-            >
-              {typeof activeCard.text === "string"
-  ? activeCard.text
-  : activeCard.text.text}
-            </div>
-          </div>
-        </>
-      )}
+    {/* ORANGE TIMER LINE */}
+    <div
+      style={{
+        position: "absolute",
+        top: 90,
+        left: 80,
+        width: 260,
+        height: 4,
+        background: GOLD,
+        transformOrigin: "left",
+        transform: `scaleX(${interpolate(
+          frame % 120,
+          [0, 120],
+          [0, 1],
+          {
+            extrapolateRight: "clamp",
+          }
+        )})`,
+      }}
+    />
+
+    <div
+      style={{
+        color: WHITE,
+        fontFamily: SANS,
+        fontSize: 72,
+        fontWeight: 500,
+        letterSpacing: 1,
+        textAlign: "center",
+        maxWidth: 850,
+        lineHeight: 1.15,
+      }}
+    >
+      {activeCard.text}
+    </div>
+
+  </div>
+)}
 
             {/* QUOTE — italic serif, elegant not shouty */}
       {quote && (
