@@ -475,7 +475,9 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
                 lineHeight:1.2,
               }}
             >
-              {activeCard.text}
+              {typeof activeCard.text === "string"
+  ? activeCard.text
+  : activeCard.text.text}
             </div>
           </div>
         </>
@@ -505,7 +507,9 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
             }}
           >
                         <span style={{ color: GOLD }}>&ldquo;</span>
-            {quote.effect.text || ""}
+            {typeof quote.effect.text === "string"
+ ? quote.effect.text
+ : quote.effect.text?.text || ""}
             <span style={{ color: GOLD }}>&rdquo;</span>
           </div>
         </div>
