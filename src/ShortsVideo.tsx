@@ -10,7 +10,7 @@ import {
   Easing,
 } from "remotion";
 
-import { useEffect, useState } from "react";
+import shortsPlan from "./shorts_plan.json";
 
 type Props = {
   shortId: number;
@@ -44,22 +44,10 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
   const { fps } = useVideoConfig();
   const time = frame / fps;
 
-  const [shortsPlan, setShortsPlan] = useState<any>(null);
-
-  useEffect(() => {
-    fetch(staticFile("shorts_plan.json"))
-      .then((res) => res.json())
-      .then((plan) => {
-        setShortsPlan(plan);
-      });
-  }, []);
-
-  if (!shortsPlan) {
-    return null;
-  }
-
-  const shorts: any[] = shortsPlan.shorts;
-  const short = shorts.find((s: any) => s.id === shortId) || shorts[0];
+ const short =
+  shortsPlan.shorts.find(
+    (s: any) => s.id === shortId
+  ) || shortsPlan.shorts[0];
 
   // IMPORTANT: video.mp4 is already the pre-cut short clip.
   // short.start / short.end are only reference timestamps from the
