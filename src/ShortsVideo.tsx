@@ -48,7 +48,7 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
   shortsPlan.shorts.find(
     (s: any) => s.id === shortId
   ) || shortsPlan.shorts[0];
-
+console.log(JSON.stringify(short,null,2));
   
   const localTime = time;
 
@@ -357,7 +357,9 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
           textShadow: "0 4px 24px rgba(0,0,0,0.75)",
         }}
       >
-        {short.hook}
+        {typeof short.hook === "string"
+  ? short.hook
+  : short.hook?.text || ""}
       </div>
 
       {/* CHAPTER MARKER — small caps label, thin gold rule */}
@@ -392,7 +394,9 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
               textTransform: "uppercase",
             }}
           >
-            {chapter.effect.text || "CHAPTER"}
+            {typeof chapter.effect.text === "string"
+  ? chapter.effect.text
+  : chapter.effect.text?.text || "CHAPTER"}
           </div>
         </div>
       )}
@@ -422,7 +426,9 @@ export const ShortsVideo: React.FC<Props> = ({ shortId }) => {
               textShadow: "0 6px 30px rgba(0,0,0,0.6)",
             }}
           >
-            {highlight.effect.text}
+           {typeof highlight.effect.text === "string"
+  ? highlight.effect.text
+  : highlight.effect.text?.text || ""}
           </div>
         </div>
       )}
