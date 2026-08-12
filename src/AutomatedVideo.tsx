@@ -322,7 +322,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
         <div
           style={{
             fontFamily: FONT_STACK,
-            fontSize: 20,
+            fontSize: 27,
             fontWeight: 700,
             letterSpacing: "5px",
             color: MUTED,
@@ -362,7 +362,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
         <div
           style={{
             fontFamily: FONT_STACK,
-            fontSize: 20,
+            fontSize: 27,
             fontWeight: 600,
             letterSpacing: "0.3px",
             color: MUTED,
@@ -553,6 +553,30 @@ function renderCornerRight(text: string, m: Motion) {
   );
 }
 
+function renderStat(value: string, label: string, m: Motion) {
+  return (
+    <div style={{ position: "absolute", bottom: 70, left: 60, opacity: m.progress, transform: `translateY(${m.depth}px)` }}>
+      <div style={{ fontFamily: FONT_STACK, fontSize: 18, fontWeight: 700, letterSpacing: "3px", color: MUTED, textTransform: "uppercase", marginBottom: 6 }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: FONT_STACK, fontSize: 64, fontWeight: 900, color: GOLD_BRIGHT, letterSpacing: "-1px", textShadow: "0 6px 18px rgba(0,0,0,1)" }}>
+        {value}
+      </div>
+      <div style={{ width: 50, height: 3, background: GOLD, marginTop: 8, boxShadow: `0 0 10px ${GOLD}` }} />
+    </div>
+  );
+}
+
+function renderTerm(text: string, m: Motion) {
+  const [korean, meaning] = text.split("|").map((s) => s.trim());
+  return (
+    <div style={{ position: "absolute", bottom: 70, right: 60, opacity: m.progress, transform: `translateY(${m.depth}px)`, textAlign: "right", background: COFFEE, border: `1px solid ${GOLD_BORDER}`, borderRadius: 10, padding: "12px 20px" }}>
+      <div style={{ fontFamily: FONT_STACK, fontSize: 26, fontWeight: 800, color: GOLD }}>{korean}</div>
+      {meaning && <div style={{ fontFamily: FONT_STACK, fontSize: 15, color: MUTED, marginTop: 2 }}>{meaning}</div>}
+    </div>
+  );
+}
+
 function renderAnimatedText(text: string, m: Motion) {
   return (
     <div
@@ -623,9 +647,20 @@ function renderSegment(
       content = renderCornerLeft(text, m);
       break;
     }
-    case "corner_right": {
+     case "corner_right": {
       const m = getMotion(frame, fps, start, end);
       content = renderCornerRight(text, m);
+      break;
+    }
+    case "stat": {
+      const m = getMotion(frame, fps, start, end);
+      const [value, label] = text.split("|").map((s: string) => s.trim());
+      content = renderStat(value, label, m);
+      break;
+    }
+    case "term": {
+      const m = getMotion(frame, fps, start, end);
+      content = renderTerm(text, m);
       break;
     }
     default: {
