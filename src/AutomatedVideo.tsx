@@ -8,6 +8,7 @@ import {
   Easing,
 } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Montserrat";
+         import { loadFont as loadFontKR } from "@remotion/google-fonts/NotoSansKR";
 
 import editingPlan from "./editing_plan.json";
 
@@ -23,8 +24,9 @@ const { fontFamily } = loadFont("normal", {
   weights: ["600", "800", "900"],
   subsets: ["cyrillic", "latin"],
 });
+const { fontFamily: fontFamilyKR } = loadFontKR("normal", { weights: ["700", "900"] });
 
-const FONT_STACK = `${fontFamily}, 'Helvetica Neue', Arial, sans-serif`;
+const FONT_STACK = `${fontFamily}, ${fontFamilyKR}, 'Helvetica Neue', Arial, sans-serif`;
 
 // ---------------------------------------------------------------------------
 // PALETTE — 60% dominant neutral (white or black full-screen background),
@@ -39,7 +41,7 @@ const FONT_STACK = `${fontFamily}, 'Helvetica Neue', Arial, sans-serif`;
 const GREEN = "#00FF00";
 const WHITE = "#FFFFFF";
 const BLACK = "#000000";
-const GOLD = "#C9972E";
+const GOLD = "#C9A24B";
 const GOLD_BRIGHT = "#E0A94A";
 const GOLD_BORDER = "#8A6A22";
 const COFFEE = "#3A2410";
@@ -356,8 +358,18 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
           transformOrigin: "left",
         }}
       />
-      {text ? (
-        <div style={{ fontFamily: FONT_STACK, fontSize: 15, color: MUTED, marginTop: 10 }}>
+       {text ? (
+        <div
+          style={{
+            fontFamily: FONT_STACK,
+            fontSize: 20,
+            fontWeight: 600,
+            letterSpacing: "0.3px",
+            color: MUTED,
+            marginTop: 12,
+            textShadow: "0 2px 6px rgba(0,0,0,1)",
+          }}
+        >
           {text}
         </div>
       ) : null}
