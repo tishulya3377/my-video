@@ -250,7 +250,7 @@ function renderFullScreenTitle(text: string, time: number, start: number, end: n
               fontWeight: 700,
               letterSpacing: "5px",
               color: GOLD,
-              textTransform: "uppercase",
+              textShadow: "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 4px 12px rgba(0,0,0,0.9)",
             }}
           >
             {KICKER_LABEL}
@@ -266,7 +266,7 @@ function renderFullScreenTitle(text: string, time: number, start: number, end: n
               color: fg,
               letterSpacing: "-2px",
               lineHeight: 1.05,
-              textTransform: "uppercase",
+              textShadow: "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 4px 12px rgba(0,0,0,0.9)",
             }}
           >
             {titleLine}
@@ -326,7 +326,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
             fontWeight: 700,
             letterSpacing: "5px",
             color: MUTED,
-            textTransform: "uppercase",
+            textShadow: "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 4px 12px rgba(0,0,0,0.9)",
           }}
         >
           ВИДЕО
@@ -338,7 +338,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
             fontWeight: 800,
             letterSpacing: "3px",
             color: GOLD,
-            textTransform: "uppercase",
+            textShadow: "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 4px 12px rgba(0,0,0,0.9)",
             background: COFFEE,
             border: `1px solid ${GOLD_BORDER}`,
             padding: "10px 24px",
@@ -367,7 +367,7 @@ function renderChapterTitle(text: string, time: number, start: number, end: numb
             letterSpacing: "0.3px",
             color: MUTED,
             marginTop: 12,
-            textShadow: "0 2px 6px rgba(0,0,0,1)",
+            textShadow: "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 4px 12px rgba(0,0,0,0.9)",
           }}
         >
           {text}
@@ -556,7 +556,7 @@ function renderCornerRight(text: string, m: Motion) {
 function renderStat(value: string, label: string, m: Motion) {
   return (
     <div style={{ position: "absolute", bottom: 70, left: 60, opacity: m.progress, transform: `translateY(${m.depth}px)` }}>
-      <div style={{ fontFamily: FONT_STACK, fontSize: 18, fontWeight: 700, letterSpacing: "3px", color: MUTED, textTransform: "uppercase", marginBottom: 6 }}>
+      <div style={{ fontFamily: FONT_STACK, fontSize: 18, fontWeight: 700, letterSpacing: "3px", color: MUTED, textShadow: "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 4px 12px rgba(0,0,0,0.9)", marginBottom: 6 }}>
         {label}
       </div>
       <div style={{ fontFamily: FONT_STACK, fontSize: 64, fontWeight: 900, color: GOLD_BRIGHT, letterSpacing: "-1px", textShadow: "0 6px 18px rgba(0,0,0,1)" }}>
